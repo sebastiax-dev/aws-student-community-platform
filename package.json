@@ -1,0 +1,15 @@
+{
+  "name": "aws-student-community-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma digital de AWS Student Builder Group PUCE",
+  "scripts": {
+    "supabase": "supabase"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "supabase": "^2.115.0"
+  }
+}
