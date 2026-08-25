@@ -1,9 +1,11 @@
 # Fase 0 — Documento técnico inicial
 
 Fecha de análisis: 25 de agosto de 2026
-Estado: **arquitectura y roadmap aprobados; servicios externos pendientes**
+Estado: **Fase 0 técnica cerrada; validaciones institucionales previas a producción pendientes**
 
 Región de Supabase aprobada para la preparación técnica: **South America (São Paulo), `sa-east-1`**.
+
+Proyecto remoto creado y vinculado: `aws-student-community-platform` (`xxulvvszfijaeeqvrxwy`).
 
 ## 1. Producto y alcance
 
@@ -297,14 +299,18 @@ Los objetivos Lighthouse son gates orientativos, no sustitutos de métricas real
 - [x] Repositorio local documental con `.gitignore` y `.env.example` sin secretos.
 - [x] Decisiones D-001 a D-008 aprobadas.
 - [x] Repositorio remoto público GitHub creado y asociado como `origin`.
-- [ ] Rama `main` protegida después del primer commit autorizado.
-- [ ] Proyecto Supabase creado y configurado.
-- [ ] Variables reales configuradas de forma segura.
+- [x] Primer commit publicado y rama `main` protegida.
+- [x] Proyecto Supabase creado en São Paulo y vinculado.
+- [x] Auth remoto configurado con confirmación de email, recuperación segura, OTP de 8 dígitos y TOTP disponible.
+- [x] Buckets `events`, `team`, `site-assets`, `avatars` y `certificates` creados y verificados.
+- [x] URL pública configurada en `.env.local` excluido de Git.
+- [x] Clave publicable configurada en `.env.local` sin pasar por el repositorio.
 - [x] Propietario y operador técnico inicial confirmados: `sebastiax-dev`.
-- [ ] Responsable legal, contacto de privacidad, marca y suplente de operación confirmados.
+- [x] Responsable de tratamiento, contacto de privacidad, marca y operación principal/suplente designados.
+- [ ] Entidad jurídica, política de privacidad aplicable, respaldo de marca y correo del suplente verificados para producción.
 - [x] Roadmap aprobado.
 
-La Fase 0 no está cerrada mientras queden casillas pendientes. No debe iniciarse el scaffold funcional hasta recibir aprobación y resolver o aceptar explícitamente los bloqueos externos.
+La Fase 0 técnica está cerrada. El scaffold funcional puede iniciar; no se debe publicar el sitio ni tratar datos personales reales hasta resolver las validaciones institucionales pendientes.
 
 ## 15. Fuentes oficiales
 

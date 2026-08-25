@@ -4,9 +4,9 @@ Plataforma digital propuesta para AWS Student Builder Group PUCE: sitio instituc
 
 ## Estado
 
-**Fase 0 — análisis y planificación.** El repositorio contiene únicamente preparación documental y controles básicos de seguridad. Todavía no contiene una aplicación Next.js, páginas, componentes, migraciones SQL ni funcionalidades.
+**Fase 0 — preparación final.** El repositorio contiene preparación documental, Supabase CLI y controles básicos de seguridad. Todavía no contiene una aplicación Next.js, páginas, componentes o funcionalidades de producto.
 
-Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/decisions-pending-approval.md](docs/decisions-pending-approval.md). La Fase 1 permanece bloqueada hasta completar o aceptar explícitamente los pendientes externos de GitHub, Supabase, privacidad y marca.
+Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/decisions-pending-approval.md](docs/decisions-pending-approval.md). La Fase 1 puede iniciar el scaffold técnico; la publicación y el tratamiento de datos reales siguen condicionados a las validaciones institucionales documentadas.
 
 ## Arquitectura propuesta
 
@@ -19,6 +19,8 @@ Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/
 El análisis completo se encuentra en [docs/phase-0-technical-plan.md](docs/phase-0-technical-plan.md).
 Los responsables confirmados y las designaciones institucionales pendientes se encuentran en [docs/governance.md](docs/governance.md).
 
+Proyecto Supabase vinculado: `aws-student-community-platform`, región `sa-east-1`, referencia `xxulvvszfijaeeqvrxwy`.
+
 ## Estructura actual
 
 ```text
@@ -27,9 +29,13 @@ aws-student-community-platform/
 │   └── README.md
 ├── docs/
 │   ├── decisions-pending-approval.md
+│   ├── governance.md
 │   └── phase-0-technical-plan.md
+├── supabase/
+│   └── config.toml
 ├── .env.example
 ├── .gitignore
+├── package.json
 └── README.md
 ```
 
@@ -37,17 +43,16 @@ La estructura `src/`, `public/`, la configuración de Next.js y las dependencias
 
 ## Variables de entorno
 
-Copiar `.env.example` a `.env.local` únicamente cuando exista un proyecto Supabase. Nunca incluir valores reales en Git.
+`.env.local` está excluido de Git y contiene la URL y clave publicable del proyecto. Nunca incluir valores locales en Git.
 
 Se proponen las claves actuales `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SECRET_KEY`; las claves heredadas `anon` y `service_role` no forman parte de esta base nueva.
 
 ## Requisitos manuales pendientes
 
-1. Proteger `main` después del primer commit autorizado y publicado.
-2. Crear o seleccionar la organización y el proyecto Supabase en una región apropiada.
-3. Confirmar responsable del tratamiento de datos, contacto de privacidad y política institucional de PUCE.
-4. Confirmar autorización de uso de nombres, logotipos y marcas de AWS/PUCE.
-5. Definir responsables de revisión para Pull Requests.
+1. Registrar la entidad jurídica, área responsable y política de privacidad aplicable.
+2. Conservar la autorización o los lineamientos de marca AWS/PUCE antes de publicar.
+3. Registrar el correo individual del operador suplente Jeyson.
+4. Definir responsables de revisión para Pull Requests.
 
 ## Comandos
 
