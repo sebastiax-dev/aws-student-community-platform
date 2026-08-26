@@ -1,22 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { AuthenticationServiceError } from "@/features/auth/errors";
+import { getSafeAuthenticationRedirectUrl } from "@/features/auth/redirect";
 import { executeAuthRequest } from "@/features/auth/request";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-function getSafeNextUrl(candidate: string | null, origin: string): URL {
-  if (candidate === null) {
-    return new URL("/dashboard", origin);
-  }
-
-  const destination = new URL(candidate, origin);
-
-  if (!candidate.startsWith("/") || destination.origin !== origin) {
-    throw new Error(`Unsafe authentication redirect path rejected: next=${candidate}`);
-  }
-
-  return destination;
-}
 
 export async function GET(request: Request): Promise<NextResponse> {
   const requestUrl = new URL(request.url);
@@ -36,5 +23,5 @@ export async function GET(request: Request): Promise<NextResponse> {
     throw new AuthenticationServiceError("exchangeCodeForSession", result.error);
   }
 
-  return NextResponse.redirect(getSafeNextUrl(requestUrl.searchParams.get("next"), requestUrl.origin));
+  return NextResponse.redirect(getSafeAuthenticationRedirectUrl(requestUrl.searchParams.get("next"), requestUrl.origin, "/dashboard"));
 }

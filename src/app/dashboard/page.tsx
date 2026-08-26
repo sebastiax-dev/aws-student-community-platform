@@ -1,4 +1,5 @@
 import { LogOut, ShieldCheck, UserRound } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { SiteHeader } from "@/components/layout/site-header";
@@ -36,6 +37,7 @@ export default async function DashboardPage(): Promise<React.ReactNode> {
           <article className="account-card surface"><span className="account-card__icon"><ShieldCheck /></span><div><p>Rol de acceso</p><strong>{roleResult.data.role}</strong><span>El rol no puede modificarse desde el cliente.</span></div></article>
         </section>
         <section className="surface account-placeholder"><h2>Tu progreso llegará en la Fase 5</h2><p>Eventos inscritos, asistencia, certificaciones y puntos se conectarán después de implementar sus modelos y reglas.</p><a className="button button--secondary" href="/preview/dashboard">Ver prototipo visual</a></section>
+        {roleResult.data.role === "ADMIN" ? <section className="surface account-placeholder"><h2>Administración habilitada</h2><p>Tu rol permite crear, editar y publicar eventos mediante controles protegidos por RLS.</p><Link className="button button--primary" href="/dashboard/admin/eventos">Administrar eventos</Link></section> : null}
         <form action={signOutAction}><button className="button button--secondary" type="submit"><LogOut size={17} /> Cerrar sesión</button></form>
       </main>
     </div>

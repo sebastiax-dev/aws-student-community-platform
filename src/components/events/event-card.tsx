@@ -1,16 +1,21 @@
-import { ArrowRight, Bot, CalendarDays, Cloud, MapPin, Monitor, Workflow } from "lucide-react";
+import { ArrowRight, Bot, CalendarDays, Cloud, MapPin, Workflow } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
-import type { EventFixture, EventStatus, EventTone } from "@/features/events/event-fixtures";
+import type { EventCardModel, EventModality } from "@/features/events/types";
+import { eventModalityLabels, eventStatusLabels } from "@/features/events/types";
+
+type EventTone = "blue" | "teal" | "violet";
 
 type EventCardProperties = Readonly<{
-  event: EventFixture;
+  event: EventCardModel;
   featured: boolean;
 }>;
 
-const statusLabels: Readonly<Record<EventStatus, string>> = {
-  open: "INSCRIPCIONES ABIERTAS",
-  past: "REALIZADO",
-  soon: "PRÓXIMAMENTE",
+const modalityTones: Readonly<Record<EventModality, EventTone>> = {
+  HYBRID: "teal",
+  IN_PERSON: "blue",
+  VIRTUAL: "violet",
 };
 
 const toneIcons: Readonly<Record<EventTone, typeof Cloud>> = {
@@ -20,22 +25,28 @@ const toneIcons: Readonly<Record<EventTone, typeof Cloud>> = {
 };
 
 export function EventCard({ event, featured }: EventCardProperties): React.ReactNode {
-  const EventIcon = toneIcons[event.tone];
-  const actionLabel = event.status === "open" ? "Ver detalles e inscribirme" : event.status === "past" ? "Ver resumen del evento" : "Más información";
+  const tone = modalityTones[event.modality];
+  const EventIcon = toneIcons[tone];
+  const actionLabel = event.status === "ACTIVE" ? "Ver detalles e inscribirme" : event.status === "FINISHED" ? "Ver resumen del evento" : "Más información";
+  const formattedDate = new Intl.DateTimeFormat("es-EC", {
+    dateStyle: "medium",
+    timeZone: "America/Guayaquil",
+  }).format(new Date(event.starts_at));
 
   return (
     <article className="event-card surface" data-featured={featured}>
-      <div className="event-card__image" data-tone={event.tone === "blue" ? undefined : event.tone}>
-        <span className={`status-pill status-pill--${event.status}`}>{statusLabels[event.status]}</span>
-        <span className="event-card__number">{event.id}</span>
-        <EventIcon aria-hidden="true" />
+      <div className="event-card__image" data-tone={tone === "blue" ? undefined : tone}>
+        {event.image_url === null
+          ? <EventIcon aria-hidden="true" />
+          : <Image alt={`Imagen de ${event.title}`} fill sizes="(min-width: 1100px) 33vw, (min-width: 700px) 50vw, 100vw" src={event.image_url} />}
+        <span className={`status-pill status-pill--${event.status.toLowerCase()}`}>{eventStatusLabels[event.status]}</span>
       </div>
       <div className="event-card__content">
-        <div className="event-card__metadata"><span><CalendarDays aria-hidden="true" size={13} /> {event.date}</span><span className="status-pill status-pill--open">{event.modality}</span></div>
+        <div className="event-card__metadata"><span><CalendarDays aria-hidden="true" size={13} /> {formattedDate}</span><span className="status-pill status-pill--open">{eventModalityLabels[event.modality]}</span></div>
         <h2>{event.title}</h2>
-        <p>{event.description}</p>
+        <p>{event.summary}</p>
         <div className="event-card__location"><MapPin aria-hidden="true" size={14} />{event.location}</div>
-        <a className={featured ? "button button--primary" : "button button--secondary"} href="#eventos">{actionLabel}<ArrowRight size={15} /></a>
+        <Link className={featured ? "button button--primary" : "button button--secondary"} href={`/eventos/${event.slug}`}>{actionLabel}<ArrowRight size={15} /></Link>
       </div>
     </article>
   );
