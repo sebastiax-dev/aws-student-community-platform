@@ -435,12 +435,68 @@ a {
 .mobile-nav a { display: grid; justify-items: center; gap: 0.2rem; color: #8fa0b9; font-size: 0.6rem; }
 .mobile-nav a[data-active="true"] { color: #268dff; }
 
+.auth-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding-block: 3rem;
+}
+
+.auth-card {
+  width: min(100%, 30rem);
+  padding: clamp(1.4rem, 5vw, 2.25rem);
+}
+
+.auth-card__back {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.auth-card__icon,
+.account-card__icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  margin-top: 1.5rem;
+  place-items: center;
+  border: 1px solid rgba(60, 155, 255, 0.65);
+  border-radius: 0.8rem;
+  background: rgba(17, 114, 246, 0.13);
+  color: #62b0ff;
+}
+
+.auth-card h1 { margin: 1rem 0 0.45rem; font-size: clamp(1.9rem, 7vw, 2.6rem); letter-spacing: -0.055em; }
+.auth-card > p { margin: 0; color: var(--muted); line-height: 1.6; }
+.auth-message { margin-top: 1rem; border: 1px solid rgba(44, 142, 255, 0.3); border-radius: 0.55rem; background: rgba(22, 108, 226, 0.1); padding: 0.75rem; color: #b9d9ff; font-size: 0.8rem; line-height: 1.5; }
+.auth-form { display: grid; gap: 1rem; margin-top: 1.4rem; }
+.auth-form label { display: grid; gap: 0.45rem; color: #d9e4f4; font-size: 0.76rem; font-weight: 700; }
+.auth-form input { width: 100%; min-height: 2.85rem; border: 1px solid var(--line); border-radius: 0.55rem; background: rgba(2, 9, 21, 0.76); padding: 0.7rem 0.8rem; color: var(--foreground); font: inherit; }
+.auth-form input:focus { border-color: #3d9cff; box-shadow: 0 0 0 3px rgba(30, 129, 255, 0.12); outline: 0; }
+.auth-form__help { justify-self: end; color: #409fff; font-size: 0.73rem; font-weight: 700; }
+.auth-form__note { margin: -0.25rem 0 0; color: var(--muted); font-size: 0.7rem; line-height: 1.5; }
+.auth-card__footer { margin-top: 1.5rem; color: var(--muted); font-size: 0.78rem; text-align: center; }
+.auth-card__footer a { color: #4ba4ff; font-weight: 700; }
+
+.account-shell { padding-block: 3rem 7rem; }
+.account-heading h1 { margin: 0.9rem 0 0.4rem; font-size: clamp(2.2rem, 6vw, 4rem); letter-spacing: -0.06em; }
+.account-heading > p:last-child { color: var(--muted); }
+.account-grid { display: grid; gap: 1rem; margin-block: 2rem 1rem; }
+.account-card { display: flex; gap: 1rem; align-items: center; padding: 1.2rem; }
+.account-card__icon { flex: none; margin: 0; }
+.account-card p, .account-card span { display: block; margin: 0; color: var(--muted); font-size: 0.72rem; }
+.account-card strong { display: block; margin-block: 0.28rem; font-size: 1.15rem; }
+.account-placeholder { margin-bottom: 1rem; padding: 1.3rem; }
+.account-placeholder h2 { margin: 0; font-size: 1.1rem; }
+.account-placeholder p { max-width: 46rem; color: var(--muted); line-height: 1.6; }
+
 @media (min-width: 700px) {
   .content-wrap { width: min(100% - 4rem, 1280px); }
   .metric-strip { grid-template-columns: repeat(4, 1fr); }
   .metric-item + .metric-item { border-left: 1px solid var(--line); }
   .event-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .account-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (min-width: 960px) {

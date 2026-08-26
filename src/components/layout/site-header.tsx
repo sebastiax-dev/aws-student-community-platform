@@ -17,7 +17,7 @@ const navigationItems: readonly NavigationItem[] = [
   { href: "/", label: "Inicio", page: "home" },
   { href: "/eventos", label: "Eventos", page: "events" },
   { href: "/#comunidad", label: "Comunidad", page: "community" },
-  { href: "/preview/dashboard", label: "Vista dashboard", page: "dashboard-preview" },
+  { href: "/dashboard", label: "Dashboard", page: "dashboard-preview" },
 ];
 
 export function SiteHeader({ activePage }: SiteHeaderProperties): React.ReactNode {
@@ -34,8 +34,8 @@ export function SiteHeader({ activePage }: SiteHeaderProperties): React.ReactNod
           </nav>
           <div className="header-actions">
             <span aria-hidden="true" className="button button--secondary"><Moon size={16} /></span>
-            <Link className="button button--secondary" href="/preview/dashboard">Iniciar sesión</Link>
-            <Link className="button button--primary" href="/eventos">Únete ahora</Link>
+            <Link className="button button--secondary" href="/login">Iniciar sesión</Link>
+            <Link className="button button--primary" href="/registro">Únete ahora</Link>
           </div>
         </div>
       </header>
@@ -43,7 +43,7 @@ export function SiteHeader({ activePage }: SiteHeaderProperties): React.ReactNod
         <Link data-active={activePage === "home"} href="/"><House size={19} /><span>Inicio</span></Link>
         <Link data-active={activePage === "events"} href="/eventos"><CalendarDays size={19} /><span>Eventos</span></Link>
         <Link data-active={activePage === "community"} href="/#comunidad"><UsersRound size={19} /><span>Comunidad</span></Link>
-        <Link data-active={activePage === "dashboard-preview"} href="/preview/dashboard"><Grid2X2 size={19} /><span>Dashboard</span></Link>
+        <Link data-active={activePage === "dashboard-preview"} href="/dashboard"><Grid2X2 size={19} /><span>Dashboard</span></Link>
       </nav>
     </>
   );
