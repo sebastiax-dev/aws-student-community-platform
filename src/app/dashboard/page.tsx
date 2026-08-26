@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { DashboardNavigation } from "@/components/dashboard/dashboard-navigation";
 import { DashboardSummary } from "@/components/dashboard/dashboard-summary";
+import { DashboardFutureVisual } from "@/components/dashboard/dashboard-future-visual";
 import { MyEventsList } from "@/components/dashboard/my-events-list";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getAuthenticatedUserId } from "@/features/auth/session";
@@ -18,5 +19,5 @@ export default async function DashboardPage(): Promise<React.ReactNode> {
   }
   const data = await getDashboardData(userId);
 
-  return <div className="page-shell"><SiteHeader activePage="dashboard-preview" /><main className="content-wrap dashboard-shell"><DashboardNavigation activePage="overview" role={data.role} /><DashboardSummary data={data} /><section className="dashboard-content-grid"><section className="dashboard-section"><div className="section-heading"><div><p className="eyebrow">PARTICIPACIÓN</p><h2>Mis eventos</h2></div><Link className="section-link" href="/dashboard/eventos">Ver historial <ArrowRight size={15} /></Link></div><MyEventsList registrations={data.registrations.slice(0, 3)} /></section><aside className="surface dashboard-future-card"><Medal size={30} /><h2>Tu progreso crece con cada participación</h2><p>Las asistencias se reflejan cuando el equipo las valida. Certificaciones y puntos se incorporarán en la siguiente fase.</p><span><Award size={15} /> Próximamente</span></aside></section></main></div>;
+  return <div className="page-shell"><SiteHeader activePage="dashboard-preview" /><main className="content-wrap dashboard-shell"><DashboardNavigation activePage="overview" role={data.role} /><DashboardSummary data={data} /><section className="dashboard-content-grid"><section className="dashboard-section"><div className="section-heading"><div><p className="eyebrow">PARTICIPACIÓN</p><h2>Mis eventos</h2></div><Link className="section-link" href="/dashboard/eventos">Ver historial <ArrowRight size={15} /></Link></div><MyEventsList registrations={data.registrations.slice(0, 3)} /></section><aside className="surface dashboard-future-card"><DashboardFutureVisual /><Medal size={30} /><h2>Tu progreso crece con cada participación</h2><p>Las asistencias se reflejan cuando el equipo las valida. Certificaciones y puntos se incorporarán en la siguiente fase.</p><span><Award size={15} /> Próximamente</span></aside></section></main></div>;
 }

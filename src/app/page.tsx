@@ -5,6 +5,7 @@ import { EventCard } from "@/components/events/event-card";
 import { CloudScene } from "@/components/home/cloud-scene";
 import { CommunityMetrics } from "@/components/home/community-metrics";
 import { SiteHeader } from "@/components/layout/site-header";
+import { MotionEventCard } from "@/components/motion/reveal";
 import { listHomeEvents } from "@/features/events/queries";
 import { eventModalityLabels } from "@/features/events/types";
 
@@ -42,7 +43,7 @@ export default async function HomePage(): Promise<React.ReactNode> {
           <div className="section-heading"><h2 id="upcoming-events">Próximos eventos</h2><Link className="section-link" href="/eventos">Ver todos los eventos <ArrowRight size={15} /></Link></div>
           {events.length === 0
             ? <div className="empty-state surface"><CalendarDays aria-hidden="true" size={30} /><h3>Programación en preparación</h3><p>Los eventos aparecerán aquí una vez que un administrador los publique.</p></div>
-            : <div className="event-grid">{events.map((event, index) => <EventCard event={event} featured={index === 0} key={event.id} />)}</div>}
+            : <div className="event-grid">{events.map((event, index) => <MotionEventCard delay={index * 0.08} key={event.id}><EventCard event={event} featured={index === 0} /></MotionEventCard>)}</div>}
         </section>
         <section id="comunidad"><CommunityMetrics /></section>
       </main>
