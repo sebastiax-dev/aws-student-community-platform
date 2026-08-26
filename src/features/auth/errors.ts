@@ -20,3 +20,10 @@ export class IdentityQueryError extends Error {
     this.name = "IdentityQueryError";
   }
 }
+
+export class AuthorizationError extends Error {
+  public constructor(operation: string, requiredRole: "ADMIN") {
+    super(`Application authorization failed: operation=${operation}, requiredRole=${requiredRole}`);
+    this.name = "AuthorizationError";
+  }
+}

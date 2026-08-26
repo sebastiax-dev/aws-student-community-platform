@@ -4,7 +4,7 @@ Plataforma digital propuesta para AWS Student Builder Group PUCE: sitio instituc
 
 ## Estado
 
-**Fase 3 — identidad y autenticación en revisión.** El repositorio incluye el sistema visual, el modelo de perfiles y roles con RLS, sesión SSR y flujos de autenticación. Eventos y métricas personales continúan como prototipos hasta sus fases funcionales.
+**Fase 4 — eventos y administración implementada; pendiente de revisión Git.** El repositorio incluye eventos públicos dinámicos, detalle por slug, inscripción con seguimiento interno, imágenes en Supabase Storage y un panel ADMIN protegido para administrar todo el ciclo del evento. Las métricas personales continúan como prototipos hasta la Fase 5.
 
 Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/decisions-pending-approval.md](docs/decisions-pending-approval.md). La Fase 1 puede iniciar el scaffold técnico; la publicación y el tratamiento de datos reales siguen condicionados a las validaciones institucionales documentadas.
 
@@ -20,6 +20,7 @@ El análisis completo se encuentra en [docs/phase-0-technical-plan.md](docs/phas
 El alcance y los controles del scaffold se encuentran en [docs/phase-1-base-architecture.md](docs/phase-1-base-architecture.md).
 El sistema de diseño y sus prototipos se documentan en [docs/phase-2-visual-system.md](docs/phase-2-visual-system.md).
 El modelo de identidad, RLS y Auth se documentan en [docs/phase-3-identity-and-auth.md](docs/phase-3-identity-and-auth.md).
+El sistema de eventos, administración y pruebas RLS se documenta en [docs/phase-4-events-and-admin.md](docs/phase-4-events-and-admin.md).
 Los responsables confirmados y las designaciones institucionales pendientes se encuentran en [docs/governance.md](docs/governance.md).
 
 Proyecto Supabase vinculado: `aws-student-community-platform`, región `sa-east-1`, referencia `xxulvvszfijaeeqvrxwy`.
@@ -36,11 +37,12 @@ aws-student-community-platform/
 │   ├── phase-0-technical-plan.md
 │   ├── phase-1-base-architecture.md
 │   ├── phase-2-visual-system.md
-│   └── phase-3-identity-and-auth.md
+│   ├── phase-3-identity-and-auth.md
+│   └── phase-4-events-and-admin.md
 ├── src/
-│   ├── app/                  # Inicio, eventos y preview de dashboard
-│   ├── components/           # Layout, home, eventos y dashboard
-│   ├── features/             # Auth y fixtures de eventos
+│   ├── app/                  # Sitio público, Auth, dashboard y administración
+│   ├── components/           # Layout, eventos, formularios y dashboard
+│   ├── features/             # Auth, consultas y mutaciones de eventos
 │   └── lib/supabase/
 ├── supabase/
 │   ├── migrations/
@@ -52,7 +54,7 @@ aws-student-community-platform/
 └── README.md
 ```
 
-Las vistas de eventos todavía usan fixtures locales. El dashboard real solo muestra identidad y rol; las demás métricas se incorporarán en fases posteriores.
+La portada y `/eventos` consultan exclusivamente eventos publicados en Supabase. Los fixtures locales se conservan solo para el preview visual de métricas del dashboard; no se usan como contenido público ni se migraron como datos reales.
 
 ## Variables de entorno
 
@@ -75,6 +77,7 @@ npm run lint
 npm run typecheck
 npm run build
 npm run test:rls
+npm run test:events-rls
 ```
 
-`test:rls` requiere variables locales y una credencial server-only cargada únicamente durante la prueba. Nunca debe guardarse esa credencial en el repositorio.
+Las pruebas RLS requieren variables locales y `SUPABASE_TEST_SERVICE_ROLE_KEY` cargada únicamente durante la ejecución. Nunca debe guardarse esa credencial en el repositorio.

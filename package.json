@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "start": "next start",
     "supabase": "supabase",
+    "test:events-rls": "node scripts/verify-events-rls.mts",
     "test:rls": "node scripts/verify-identity-rls.mts",
     "typecheck": "tsc --noEmit"
   },

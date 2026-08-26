@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { AuthenticationServiceError } from "@/features/auth/errors";
+import { getSafeAuthenticationRedirectPath, UnsafeAuthenticationRedirectError } from "@/features/auth/redirect";
 import { executeAuthRequest } from "@/features/auth/request";
 import { getAuthenticatedUserId } from "@/features/auth/session";
 import { getPublicSupabaseEnvironment } from "@/lib/env";
@@ -34,6 +35,17 @@ export async function signInAction(formData: FormData): Promise<never> {
     redirect("/login?error=invalid_input");
   }
 
+  const nextCandidate = formData.get("next");
+  let nextPath: string;
+  try {
+    nextPath = getSafeAuthenticationRedirectPath(typeof nextCandidate === "string" ? nextCandidate : null, "/dashboard");
+  } catch (error) {
+    if (error instanceof UnsafeAuthenticationRedirectError) {
+      redirect("/login?error=invalid_input");
+    }
+    throw error;
+  }
+
   const supabase = await createSupabaseServerClient();
   const result = await executeAuthRequest("signInWithPassword", () => supabase.auth.signInWithPassword(parsedInput.data));
 
@@ -47,7 +59,7 @@ export async function signInAction(formData: FormData): Promise<never> {
     throw new AuthenticationServiceError("signInWithPassword", result.error);
   }
 
-  redirect("/dashboard");
+  redirect(nextPath);
 }
 
 export async function signUpAction(formData: FormData): Promise<never> {
