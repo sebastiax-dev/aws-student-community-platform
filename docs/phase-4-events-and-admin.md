@@ -61,7 +61,7 @@ La prueba eliminó el evento, el objeto de Storage y las tres cuentas temporales
 - migración aplicada con `supabase db push --linked`;
 - `supabase db lint --linked --level warning` sin errores de esquema;
 - tipos regenerados desde el proyecto Supabase vinculado;
-- 18 pruebas remotas de eventos, RLS, concurrencia y Storage exitosas;
+- 18 pruebas remotas de eventos, RLS, concurrencia y Storage exitosas al cerrar esta fase; la Fase 5 amplía la misma prueba a 21 comprobaciones de historial personal;
 - `npm run lint` y `npm run typecheck` exitosos;
 - `npm run build` debe quedar exitoso antes del checkpoint Git.
 

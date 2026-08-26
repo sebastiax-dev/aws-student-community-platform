@@ -4,7 +4,7 @@ Plataforma digital propuesta para AWS Student Builder Group PUCE: sitio instituc
 
 ## Estado
 
-**Fase 4 — eventos y administración implementada; pendiente de revisión Git.** El repositorio incluye eventos públicos dinámicos, detalle por slug, inscripción con seguimiento interno, imágenes en Supabase Storage y un panel ADMIN protegido para administrar todo el ciclo del evento. Las métricas personales continúan como prototipos hasta la Fase 5.
+**Fase 5 — dashboard del estudiante implementado; pendiente de revisión Git.** El repositorio incluye eventos públicos dinámicos, un panel ADMIN protegido y un área personal con historial de participación, resumen real y perfil editable bajo RLS. Asistencias, certificaciones y puntos se implementarán como fuentes auditables en la Fase 6.
 
 Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/decisions-pending-approval.md](docs/decisions-pending-approval.md). La Fase 1 puede iniciar el scaffold técnico; la publicación y el tratamiento de datos reales siguen condicionados a las validaciones institucionales documentadas.
 
@@ -21,6 +21,7 @@ El alcance y los controles del scaffold se encuentran en [docs/phase-1-base-arch
 El sistema de diseño y sus prototipos se documentan en [docs/phase-2-visual-system.md](docs/phase-2-visual-system.md).
 El modelo de identidad, RLS y Auth se documentan en [docs/phase-3-identity-and-auth.md](docs/phase-3-identity-and-auth.md).
 El sistema de eventos, administración y pruebas RLS se documenta en [docs/phase-4-events-and-admin.md](docs/phase-4-events-and-admin.md).
+El dashboard del estudiante y su aislamiento se documentan en [docs/phase-5-student-dashboard.md](docs/phase-5-student-dashboard.md).
 Los responsables confirmados y las designaciones institucionales pendientes se encuentran en [docs/governance.md](docs/governance.md).
 
 Proyecto Supabase vinculado: `aws-student-community-platform`, región `sa-east-1`, referencia `xxulvvszfijaeeqvrxwy`.
@@ -38,7 +39,8 @@ aws-student-community-platform/
 │   ├── phase-1-base-architecture.md
 │   ├── phase-2-visual-system.md
 │   ├── phase-3-identity-and-auth.md
-│   └── phase-4-events-and-admin.md
+│   ├── phase-4-events-and-admin.md
+│   └── phase-5-student-dashboard.md
 ├── src/
 │   ├── app/                  # Sitio público, Auth, dashboard y administración
 │   ├── components/           # Layout, eventos, formularios y dashboard

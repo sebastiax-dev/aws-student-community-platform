@@ -165,12 +165,18 @@ async function verifyEventPolicies(): Promise<void> {
     assertCondition(registrationId !== undefined, "the successful registration must have an identifier");
     const adminStatusUpdate = await adminClient.from("event_registrations").update({ status: "CONFIRMED" }).eq("id", registrationId ?? "").select("status").single();
     assertCondition(adminStatusUpdate.error === null && adminStatusUpdate.data?.status === "CONFIRMED", "ADMIN must update registration status");
+    const unpublishEvent = await adminClient.from("events").update({ is_published: false }).eq("id", eventId).select("id").single();
+    assertCondition(unpublishEvent.error === null, "ADMIN must be able to unpublish an event after registration");
+    const ownHistoricalEvent = await winningClient.from("events").select("id").eq("id", eventId).single();
+    assertCondition(ownHistoricalEvent.error === null && ownHistoricalEvent.data?.id === eventId, "a user must retain access to an event with their own registration after it is unpublished");
+    const otherHistoricalEvent = await losingClient.from("events").select("id").eq("id", eventId);
+    assertCondition(otherHistoricalEvent.error === null && otherHistoricalEvent.data?.length === 0, "a user must not read an unpublished event without their own registration");
     const ordinaryEventUpdate = await firstClient.from("events").update({ title: "Forbidden change" }).eq("id", eventId).select("id");
     assertCondition(ordinaryEventUpdate.error === null && ordinaryEventUpdate.data?.length === 0, "ordinary users must not update events");
     const adminAudit = await adminClient.from("audit_events").select("id").eq("entity_id", eventId);
     assertCondition(adminAudit.error === null && (adminAudit.data?.length ?? 0) >= 2, "ADMIN must read event audit records");
 
-    console.info("Event RLS verification passed.", { checks: 18, temporaryUsers: identities.length });
+    console.info("Event RLS verification passed.", { checks: 21, temporaryUsers: identities.length });
   } finally {
     const storageRemoval = await service.storage.from("events").remove([storagePath]);
     if (storageRemoval.error !== null) {
