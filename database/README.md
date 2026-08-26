@@ -17,5 +17,6 @@ Los cambios no deberán ejecutarse manualmente como única fuente de verdad en e
 
 - `20260825220000_create_identity_model.sql`: perfiles, roles, autorización y RLS de identidad.
 - `20260826203000_create_events_and_registrations.sql`: eventos, contenido relacionado, inscripciones, auditoría y políticas del bucket `events`.
+- `20260826213000_allow_users_to_read_registered_events.sql`: historial de eventos propio para el dashboard, incluso tras una despublicación.
 
 No hay datos semilla de eventos: el contenido real se crea desde `/dashboard/admin/eventos`.
