@@ -1,7 +1,7 @@
 import { IdentityQueryError } from "@/features/auth/errors";
 import { getEventImageUrl } from "@/features/events/image-url";
 import { executeEventQuery, requireEventQueryData } from "@/features/events/request";
-import type { DashboardData, DashboardEvent, DashboardRegistration, DashboardStats } from "@/features/dashboard/types";
+import type { DashboardCertification, DashboardData, DashboardEvent, DashboardPointHistory, DashboardRegistration, DashboardStats } from "@/features/dashboard/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const dashboardEventColumns = "ends_at, id, image_path, is_published, location, modality, slug, starts_at, status, summary, title" as const;
@@ -25,27 +25,76 @@ function sortDashboardRegistrations(registrations: readonly DashboardRegistratio
   });
 }
 
-function calculateDashboardStats(registrations: readonly DashboardRegistration[], now: Date): DashboardStats {
+function calculateDashboardStats(registrations: readonly DashboardRegistration[], profile: DashboardData["profile"]): DashboardStats {
   const activeRegistrations = registrations.filter((registration) => registration.status !== "CANCELLED");
 
   return {
     active_registrations: activeRegistrations.length,
     attended_events: registrations.filter((registration) => registration.status === "ATTENDED").length,
-    confirmed_registrations: registrations.filter((registration) => registration.status === "CONFIRMED").length,
-    upcoming_events: activeRegistrations.filter((registration) => registration.event !== null && registration.event.status !== "FINISHED" && new Date(registration.event.starts_at) >= now).length,
+    total_certifications: profile.total_certifications,
+    total_points: profile.total_points,
+  };
+}
+
+function getProgressEventIds(
+  registrations: readonly { event_id: string }[],
+  certifications: readonly { event_id: string | null }[],
+  pointsHistory: readonly { event_id: string | null }[],
+): readonly string[] {
+  return [...new Set([
+    ...registrations.map((registration) => registration.event_id),
+    ...certifications.flatMap((certificate) => certificate.event_id === null ? [] : [certificate.event_id]),
+    ...pointsHistory.flatMap((point) => point.event_id === null ? [] : [point.event_id]),
+  ])];
+}
+
+function toDashboardCertification(
+  certification: Readonly<{ certificate_name: string; event_id: string | null; id: string; issued_at: string; revoked_at: string | null }>,
+  eventTitles: ReadonlyMap<string, string>,
+): DashboardCertification {
+  return {
+    certificate_name: certification.certificate_name,
+    event_title: certification.event_id === null ? null : eventTitles.get(certification.event_id) ?? null,
+    id: certification.id,
+    issued_at: certification.issued_at,
+    revoked_at: certification.revoked_at,
+  };
+}
+
+function toDashboardPointHistory(
+  point: Readonly<{ action: DashboardPointHistory["action"]; created_at: string; event_id: string | null; id: string; points: number }>,
+  eventTitles: ReadonlyMap<string, string>,
+): DashboardPointHistory {
+  return {
+    action: point.action,
+    created_at: point.created_at,
+    event_title: point.event_id === null ? null : eventTitles.get(point.event_id) ?? null,
+    id: point.id,
+    points: point.points,
   };
 }
 
 export async function getDashboardData(userId: string): Promise<DashboardData> {
   const supabase = await createSupabaseServerClient();
-  const [profileResult, registrationResult, roleResult] = await Promise.all([
-    supabase.from("profiles").select("created_at, display_name").eq("id", userId).single(),
+  const [profileResult, registrationResult, roleResult, certificationResult, pointsHistoryResult] = await Promise.all([
+    supabase.from("profiles").select("created_at, display_name, total_certifications, total_points").eq("id", userId).single(),
     executeEventQuery("listOwnEventRegistrations", () => supabase
       .from("event_registrations")
       .select("event_id, id, registered_at, source, status")
       .eq("user_id", userId)
       .order("registered_at", { ascending: false })),
     supabase.from("user_roles").select("role").eq("user_id", userId).single(),
+    executeEventQuery("listOwnCertifications", () => supabase
+      .from("certifications")
+      .select("certificate_name, event_id, id, issued_at, revoked_at")
+      .eq("user_id", userId)
+      .order("issued_at", { ascending: false })),
+    executeEventQuery("listOwnPointsHistory", () => supabase
+      .from("points_history")
+      .select("action, created_at, event_id, id, points")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(50)),
   ]);
 
   if (profileResult.error !== null) {
@@ -56,7 +105,9 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
   }
 
   const registrations = requireEventQueryData("listOwnEventRegistrations", registrationResult.data);
-  const eventIds = registrations.map((registration) => registration.event_id);
+  const certifications = requireEventQueryData("listOwnCertifications", certificationResult.data);
+  const pointsHistory = requireEventQueryData("listOwnPointsHistory", pointsHistoryResult.data);
+  const eventIds = getProgressEventIds(registrations, certifications, pointsHistory);
   const events = eventIds.length === 0
     ? []
     : requireEventQueryData("listOwnRegistrationEvents", (await executeEventQuery("listOwnRegistrationEvents", () => supabase
@@ -64,6 +115,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
       .select(dashboardEventColumns)
       .in("id", eventIds))).data).map(toDashboardEvent);
   const eventsById = new Map(events.map((event) => [event.id, event]));
+  const eventTitles = new Map(events.map((event) => [event.id, event.title]));
   const dashboardRegistrations = sortDashboardRegistrations(registrations.map((registration) => ({
     event: eventsById.get(registration.event_id) ?? null,
     id: registration.id,
@@ -74,8 +126,12 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
 
   return {
     profile: profileResult.data,
+    progress: {
+      certifications: certifications.map((certification) => toDashboardCertification(certification, eventTitles)),
+      points_history: pointsHistory.map((point) => toDashboardPointHistory(point, eventTitles)),
+    },
     registrations: dashboardRegistrations,
     role: roleResult.data.role,
-    stats: calculateDashboardStats(dashboardRegistrations, new Date()),
+    stats: calculateDashboardStats(dashboardRegistrations, profileResult.data),
   };
 }

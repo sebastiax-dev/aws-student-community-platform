@@ -4,7 +4,7 @@ Plataforma digital propuesta para AWS Student Builder Group PUCE: sitio instituc
 
 ## Estado
 
-**Fase 5 — dashboard del estudiante implementado; pendiente de revisión Git.** El repositorio incluye eventos públicos dinámicos, un panel ADMIN protegido y un área personal con historial de participación, resumen real y perfil editable bajo RLS. Asistencias, certificaciones y puntos se implementarán como fuentes auditables en la Fase 6.
+**Fase 6 — asistencias, certificaciones y puntos implementados; pendiente de revisión Git.** El repositorio incluye eventos públicos dinámicos, un panel ADMIN protegido y un área personal con historial de participación, puntos y certificaciones bajo RLS. Las asistencias se registran mediante una operación administrativa auditada.
 
 Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/decisions-pending-approval.md](docs/decisions-pending-approval.md). La Fase 1 puede iniciar el scaffold técnico; la publicación y el tratamiento de datos reales siguen condicionados a las validaciones institucionales documentadas.
 
@@ -22,6 +22,7 @@ El sistema de diseño y sus prototipos se documentan en [docs/phase-2-visual-sys
 El modelo de identidad, RLS y Auth se documentan en [docs/phase-3-identity-and-auth.md](docs/phase-3-identity-and-auth.md).
 El sistema de eventos, administración y pruebas RLS se documenta en [docs/phase-4-events-and-admin.md](docs/phase-4-events-and-admin.md).
 El dashboard del estudiante y su aislamiento se documentan en [docs/phase-5-student-dashboard.md](docs/phase-5-student-dashboard.md).
+El progreso, las asistencias y las certificaciones se documentan en [docs/phase-6-progress-attendance.md](docs/phase-6-progress-attendance.md).
 Los responsables confirmados y las designaciones institucionales pendientes se encuentran en [docs/governance.md](docs/governance.md).
 
 Proyecto Supabase vinculado: `aws-student-community-platform`, región `sa-east-1`, referencia `xxulvvszfijaeeqvrxwy`.
@@ -40,7 +41,8 @@ aws-student-community-platform/
 │   ├── phase-2-visual-system.md
 │   ├── phase-3-identity-and-auth.md
 │   ├── phase-4-events-and-admin.md
-│   └── phase-5-student-dashboard.md
+│   ├── phase-5-student-dashboard.md
+│   └── phase-6-progress-attendance.md
 ├── src/
 │   ├── app/                  # Sitio público, Auth, dashboard y administración
 │   ├── components/           # Layout, eventos, formularios y dashboard
@@ -80,6 +82,7 @@ npm run typecheck
 npm run build
 npm run test:rls
 npm run test:events-rls
+npm run test:progress-rls
 ```
 
 Las pruebas RLS requieren variables locales y `SUPABASE_TEST_SERVICE_ROLE_KEY` cargada únicamente durante la ejecución. Nunca debe guardarse esa credencial en el repositorio.

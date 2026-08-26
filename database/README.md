@@ -1,6 +1,6 @@
 # Base de datos
 
-Las migraciones reproducibles viven en `supabase/migrations/` para integrarse directamente con Supabase CLI. Las pruebas remotas de RLS viven en `scripts/verify-identity-rls.mts` y `scripts/verify-events-rls.mts`.
+Las migraciones reproducibles viven en `supabase/migrations/` para integrarse directamente con Supabase CLI. Las pruebas remotas de RLS viven en `scripts/verify-identity-rls.mts`, `scripts/verify-events-rls.mts` y `scripts/verify-progress-rls.mts`.
 
 Las migraciones deberán cubrir, en orden:
 
@@ -18,5 +18,7 @@ Los cambios no deberán ejecutarse manualmente como única fuente de verdad en e
 - `20260825220000_create_identity_model.sql`: perfiles, roles, autorización y RLS de identidad.
 - `20260826203000_create_events_and_registrations.sql`: eventos, contenido relacionado, inscripciones, auditoría y políticas del bucket `events`.
 - `20260826213000_allow_users_to_read_registered_events.sql`: historial de eventos propio para el dashboard, incluso tras una despublicación.
+- `20260826230000_create_progress_and_attendance.sql`: asistencias, certificaciones, puntos auditables, agregados y RLS del progreso.
+- `20260826231500_make_certificate_issuance_idempotent.sql`: evita certificados activos duplicados ante reintentos.
 
 No hay datos semilla de eventos: el contenido real se crea desde `/dashboard/admin/eventos`.

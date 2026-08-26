@@ -182,6 +182,10 @@ async function verifyEventPolicies(): Promise<void> {
     if (storageRemoval.error !== null) {
       throw new Error(`Unable to remove temporary event asset: path=${storagePath}, message=${storageRemoval.error.message}`);
     }
+    const pointsCleanup = await service.from("points_history").delete().eq("event_id", eventId);
+    if (pointsCleanup.error !== null) {
+      throw new Error(`Unable to remove temporary points history: eventId=${eventId}, code=${pointsCleanup.error.code}, message=${pointsCleanup.error.message}`);
+    }
     const registrationCleanup = await service.from("event_registrations").delete().eq("event_id", eventId);
     if (registrationCleanup.error !== null) {
       throw new Error(`Unable to remove temporary event registrations: eventId=${eventId}, code=${registrationCleanup.error.code}, message=${registrationCleanup.error.message}`);

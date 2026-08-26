@@ -46,6 +46,12 @@ export type AdminEventDetail = Readonly<AdminEventSummary & Pick<EventRow, "desc
 }>;
 
 export type AdminEventRegistration = Readonly<{
+  attended: boolean;
+  certifications: readonly Readonly<{
+    certificate_name: string;
+    id: string;
+    issued_at: string;
+  }>[];
   display_name: string;
   id: string;
   registered_at: string;

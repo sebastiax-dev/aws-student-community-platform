@@ -488,6 +488,9 @@ export async function updateEventRegistrationStatusAction(eventId: string, slug:
   if (!parsedStatus.success) {
     redirect(`/dashboard/admin/eventos/${eventId}/editar?error=invalid_registration_status`);
   }
+  if (parsedStatus.data === "ATTENDED") {
+    redirect(`/dashboard/admin/eventos/${eventId}/editar?error=use_attendance_control`);
+  }
 
   await requireAdmin("updateEventRegistrationStatus");
   const supabase = await createSupabaseServerClient();

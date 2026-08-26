@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, Clock3, UsersRound } from "lucide-react";
+import { Award, CalendarDays, Sparkles, UsersRound } from "lucide-react";
 
 import type { DashboardData } from "@/features/dashboard/types";
 
@@ -12,9 +12,9 @@ const statDefinitions: readonly Readonly<{
   label: string;
 }>[] = [
   { Icon: CalendarDays, key: "active_registrations", label: "Inscripciones activas" },
-  { Icon: Clock3, key: "upcoming_events", label: "Eventos próximos" },
-  { Icon: CheckCircle2, key: "confirmed_registrations", label: "Confirmadas" },
   { Icon: UsersRound, key: "attended_events", label: "Asistencias" },
+  { Icon: Award, key: "total_certifications", label: "Certificaciones" },
+  { Icon: Sparkles, key: "total_points", label: "Puntos" },
 ];
 
 export function DashboardSummary({ data }: DashboardSummaryProperties): React.ReactNode {

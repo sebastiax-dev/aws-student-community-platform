@@ -1,4 +1,4 @@
-import { CalendarDays, ClipboardCheck, Link as LinkIcon, LockKeyhole, Plus, Trash2, Users } from "lucide-react";
+import { Award, CalendarDays, ClipboardCheck, Link as LinkIcon, LockKeyhole, Plus, Trash2, Users } from "lucide-react";
 
 import { SubmitButton } from "@/components/forms/submit-button";
 import {
@@ -11,6 +11,7 @@ import {
   updateEventPrivateDetailsAction,
   updateEventRegistrationStatusAction,
 } from "@/features/events/actions";
+import { issueCertificateAction, revokeCertificateAction, setEventAttendanceAction } from "@/features/progress/actions";
 import type { AdminEventDetail, AdminEventRegistration } from "@/features/events/types";
 import { registrationStatusLabels } from "@/features/events/types";
 import { formatEcuadorDateTimeInput } from "@/features/events/validation";
@@ -26,6 +27,17 @@ function formatEcuadorDateTime(isoDate: string): string {
     timeStyle: "short",
     timeZone: "America/Guayaquil",
   }).format(new Date(isoDate));
+}
+
+function getCurrentDateInput(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "America/Guayaquil",
+    year: "numeric",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 export function EventDetailManagement({ event, registrations }: EventDetailManagementProperties): React.ReactNode {
@@ -92,10 +104,12 @@ export function EventDetailManagement({ event, registrations }: EventDetailManag
       </section>
 
       <section className="admin-form surface">
-        <div className="admin-form__heading"><div><p className="eyebrow"><ClipboardCheck size={14} /> SEGUIMIENTO</p><h2>Inscripciones</h2></div><span className="admin-count">{registrations.length}</span></div>
+        <div className="admin-form__heading"><div><p className="eyebrow"><ClipboardCheck size={14} /> SEGUIMIENTO</p><h2>Asistencia y certificados</h2><p>La asistencia actualiza el historial y los puntos del estudiante de forma automática.</p></div><span className="admin-count">{registrations.length}</span></div>
         {registrations.length === 0 ? <p className="admin-empty-copy">Todavía no hay inscripciones registradas.</p> : <div className="registration-table">{registrations.map((registration) => {
           const updateStatusAction = updateEventRegistrationStatusAction.bind(null, event.id, event.slug, registration.id);
-          return <article key={registration.id}><div><strong>{registration.display_name}</strong><span>{formatEcuadorDateTime(registration.registered_at)} · {registration.source === "GOOGLE_FORMS" ? "Google Forms" : "Plataforma web"}</span></div><form action={updateStatusAction}><select aria-label={`Estado de inscripción de ${registration.display_name}`} defaultValue={registration.status} name="status">{Object.entries(registrationStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><SubmitButton className="button button--secondary" pendingLabel="Actualizando…">Actualizar</SubmitButton></form></article>;
+          const attendanceAction = setEventAttendanceAction.bind(null, event.id, event.slug, registration.user_id);
+          const certificateAction = issueCertificateAction.bind(null, event.id, event.slug, registration.user_id);
+          return <article key={registration.id}><div><strong>{registration.display_name}</strong><span>{formatEcuadorDateTime(registration.registered_at)} · {registration.source === "GOOGLE_FORMS" ? "Google Forms" : "Plataforma web"}</span><span>{registration.attended ? "Asistencia registrada" : registrationStatusLabels[registration.status]}</span></div><div className="registration-table__actions"><form action={attendanceAction}><input name="attended" type="hidden" value={registration.attended ? "false" : "true"} /><SubmitButton className={registration.attended ? "button button--secondary" : "button button--primary"} pendingLabel="Guardando…"><ClipboardCheck size={15} /> {registration.attended ? "Retirar asistencia" : "Marcar asistencia"}</SubmitButton></form>{registration.attended ? <form action={certificateAction} className="registration-certificate-form"><input defaultValue="Certificado de participación" maxLength={160} minLength={3} name="certificateName" required type="text" /><input defaultValue={getCurrentDateInput()} name="issuedAt" required type="date" /><SubmitButton className="button button--secondary" pendingLabel="Emitiendo…"><Award size={15} /> Emitir certificado</SubmitButton></form> : null}{registration.certifications.length === 0 ? null : <div className="registration-certificates">{registration.certifications.map((certificate) => { const revokeAction = revokeCertificateAction.bind(null, event.id, event.slug, certificate.id); return <form action={revokeAction} key={certificate.id}><span>{certificate.certificate_name} · {new Intl.DateTimeFormat("es-EC", { dateStyle: "medium", timeZone: "America/Guayaquil" }).format(new Date(certificate.issued_at))}</span><SubmitButton className="button button--secondary" pendingLabel="Revocando…">Revocar</SubmitButton></form>; })}</div>}{registration.attended ? null : <form action={updateStatusAction}><select aria-label={`Estado de inscripción de ${registration.display_name}`} defaultValue={registration.status} name="status">{Object.entries(registrationStatusLabels).filter(([value]) => value !== "ATTENDED").map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><SubmitButton className="button button--secondary" pendingLabel="Actualizando…">Actualizar estado</SubmitButton></form>}</div></article>;
         })}</div>}
       </section>
     </div>

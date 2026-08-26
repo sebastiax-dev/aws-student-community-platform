@@ -6,6 +6,39 @@ export type Database = {
   };
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          attended: boolean;
+          created_at: string;
+          event_id: string;
+          id: string;
+          recorded_at: string | null;
+          recorded_by: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          attended?: boolean;
+          created_at?: string;
+          event_id: string;
+          id?: string;
+          recorded_at?: string | null;
+          recorded_by?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          attended?: boolean;
+          created_at?: string;
+          event_id?: string;
+          id?: string;
+          recorded_at?: string | null;
+          recorded_by?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       audit_events: {
         Row: {
           action: string;
@@ -33,6 +66,42 @@ export type Database = {
           id?: never;
           metadata?: Json;
           occurred_at?: string;
+        };
+        Relationships: [];
+      };
+      certifications: {
+        Row: {
+          certificate_name: string;
+          created_at: string;
+          created_by: string;
+          event_id: string | null;
+          id: string;
+          issued_at: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          user_id: string;
+        };
+        Insert: {
+          certificate_name: string;
+          created_at?: string;
+          created_by: string;
+          event_id?: string | null;
+          id?: string;
+          issued_at?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          user_id: string;
+        };
+        Update: {
+          certificate_name?: string;
+          created_at?: string;
+          created_by?: string;
+          event_id?: string | null;
+          id?: string;
+          issued_at?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          user_id?: string;
         };
         Relationships: [];
       };
@@ -270,12 +339,47 @@ export type Database = {
         };
         Relationships: [];
       };
+      points_history: {
+        Row: {
+          action: Database["public"]["Enums"]["point_action"];
+          created_at: string;
+          created_by: string | null;
+          event_id: string | null;
+          id: string;
+          metadata: Json;
+          points: number;
+          user_id: string;
+        };
+        Insert: {
+          action: Database["public"]["Enums"]["point_action"];
+          created_at?: string;
+          created_by?: string | null;
+          event_id?: string | null;
+          id?: string;
+          metadata?: Json;
+          points: number;
+          user_id: string;
+        };
+        Update: {
+          action?: Database["public"]["Enums"]["point_action"];
+          created_at?: string;
+          created_by?: string | null;
+          event_id?: string | null;
+          id?: string;
+          metadata?: Json;
+          points?: number;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           avatar_path: string | null;
           created_at: string;
           display_name: string;
           id: string;
+          total_certifications: number;
+          total_points: number;
           updated_at: string;
         };
         Insert: {
@@ -283,6 +387,8 @@ export type Database = {
           created_at?: string;
           display_name: string;
           id: string;
+          total_certifications?: number;
+          total_points?: number;
           updated_at?: string;
         };
         Update: {
@@ -290,6 +396,8 @@ export type Database = {
           created_at?: string;
           display_name?: string;
           id?: string;
+          total_certifications?: number;
+          total_points?: number;
           updated_at?: string;
         };
         Relationships: [];
@@ -325,11 +433,24 @@ export type Database = {
         Args: { p_event_id: string };
         Returns: string;
       };
+      issue_certificate: {
+        Args: { p_certificate_name: string; p_event_id: string; p_issued_at: string; p_user_id: string };
+        Returns: string;
+      };
+      revoke_certificate: {
+        Args: { p_certificate_id: string };
+        Returns: undefined;
+      };
+      set_event_attendance: {
+        Args: { p_attended: boolean; p_event_id: string; p_user_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       app_role: "USER" | "ADMIN";
       event_modality: "IN_PERSON" | "VIRTUAL" | "HYBRID";
       event_status: "PLANNED" | "ACTIVE" | "FINISHED";
+      point_action: "REGISTRATION" | "ATTENDANCE" | "ATTENDANCE_REVERSAL" | "MANUAL_ADJUSTMENT";
       registration_source: "GOOGLE_FORMS" | "WEB_PLATFORM";
       registration_status: "INITIATED" | "CONFIRMED" | "ATTENDED" | "CANCELLED" | "NO_SHOW";
     };
