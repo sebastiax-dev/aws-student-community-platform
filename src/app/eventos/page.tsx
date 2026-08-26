@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { EventCard } from "@/components/events/event-card";
 import { SiteHeader } from "@/components/layout/site-header";
+import { MotionEventCard } from "@/components/motion/reveal";
 import { listPublishedEvents } from "@/features/events/queries";
 import type { EventCardModel } from "@/features/events/types";
 
@@ -57,7 +58,7 @@ export default async function EventsPage({ searchParams }: EventsPageProperties)
         </nav>
         {events.length === 0
           ? <section className="empty-state surface"><CalendarDays aria-hidden="true" size={32} /><h2>No hay eventos para este filtro</h2><p>Los próximos eventos aparecerán aquí cuando el equipo los publique.</p></section>
-          : <section aria-label="Listado de eventos" className="event-grid">{events.map((event, index) => <EventCard event={event} featured={index === 0} key={event.id} />)}</section>}
+          : <section aria-label="Listado de eventos" className="event-grid">{events.map((event, index) => <MotionEventCard delay={index * 0.08} key={event.id}><EventCard event={event} featured={index === 0} /></MotionEventCard>)}</section>}
       </main>
     </div>
   );
