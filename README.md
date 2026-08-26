@@ -4,7 +4,7 @@ Plataforma digital propuesta para AWS Student Builder Group PUCE: sitio instituc
 
 ## Estado
 
-**Fase 1 — configuración base en curso.** El repositorio ya incluye el scaffold de Next.js, TypeScript estricto, Tailwind CSS, ESLint y adaptadores SSR de Supabase. Aún no contiene funcionalidades de autenticación, modelo de datos ni contenido de producto.
+**Fase 2 — sistema visual en curso.** El repositorio incluye el scaffold técnico y prototipos estáticos responsive para inicio, eventos y dashboard. Aún no contiene autenticación, modelo de datos, registro de eventos ni datos de usuarios reales.
 
 Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/decisions-pending-approval.md](docs/decisions-pending-approval.md). La Fase 1 puede iniciar el scaffold técnico; la publicación y el tratamiento de datos reales siguen condicionados a las validaciones institucionales documentadas.
 
@@ -18,6 +18,7 @@ Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/
 
 El análisis completo se encuentra en [docs/phase-0-technical-plan.md](docs/phase-0-technical-plan.md).
 El alcance y los controles del scaffold se encuentran en [docs/phase-1-base-architecture.md](docs/phase-1-base-architecture.md).
+El sistema de diseño y sus prototipos se documentan en [docs/phase-2-visual-system.md](docs/phase-2-visual-system.md).
 Los responsables confirmados y las designaciones institucionales pendientes se encuentran en [docs/governance.md](docs/governance.md).
 
 Proyecto Supabase vinculado: `aws-student-community-platform`, región `sa-east-1`, referencia `xxulvvszfijaeeqvrxwy`.
@@ -32,9 +33,12 @@ aws-student-community-platform/
 │   ├── decisions-pending-approval.md
 │   ├── governance.md
 │   ├── phase-0-technical-plan.md
-│   └── phase-1-base-architecture.md
+│   ├── phase-1-base-architecture.md
+│   └── phase-2-visual-system.md
 ├── src/
-│   ├── app/
+│   ├── app/                  # Inicio, eventos y preview de dashboard
+│   ├── components/           # Layout, home, eventos y dashboard
+│   ├── features/events/      # Fixtures de prototipo, no datos reales
 │   └── lib/supabase/
 ├── supabase/
 │   └── config.toml
@@ -45,7 +49,7 @@ aws-student-community-platform/
 └── README.md
 ```
 
-Las rutas de producto, componentes de interfaz, migraciones y funcionalidades se incorporarán de forma incremental en las siguientes fases.
+Las vistas de Fase 2 usan fixtures locales. Las migraciones, RLS y funcionalidades se incorporarán de forma incremental en las siguientes fases.
 
 ## Variables de entorno
 
