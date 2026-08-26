@@ -1,8 +1,8 @@
 # Base de datos
 
-Este directorio está reservado para migraciones SQL reproducibles y pruebas de seguridad de PostgreSQL/Supabase.
+Las migraciones reproducibles viven en `supabase/migrations/` para integrarse directamente con Supabase CLI. La prueba remota de identidad y RLS vive en `scripts/verify-identity-rls.mts`.
 
-No contiene SQL todavía porque el modelo propuesto requiere aprobación. Una vez aprobado, las migraciones deberán cubrir, en orden:
+Las migraciones deberán cubrir, en orden:
 
 1. tipos, tablas, claves foráneas, restricciones e índices;
 2. funciones privadas de autorización;

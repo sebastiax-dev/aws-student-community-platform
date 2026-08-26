@@ -4,7 +4,7 @@ Plataforma digital propuesta para AWS Student Builder Group PUCE: sitio instituc
 
 ## Estado
 
-**Fase 2 — sistema visual en curso.** El repositorio incluye el scaffold técnico y prototipos estáticos responsive para inicio, eventos y dashboard. Aún no contiene autenticación, modelo de datos, registro de eventos ni datos de usuarios reales.
+**Fase 3 — identidad y autenticación en revisión.** El repositorio incluye el sistema visual, el modelo de perfiles y roles con RLS, sesión SSR y flujos de autenticación. Eventos y métricas personales continúan como prototipos hasta sus fases funcionales.
 
 Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/decisions-pending-approval.md](docs/decisions-pending-approval.md). La Fase 1 puede iniciar el scaffold técnico; la publicación y el tratamiento de datos reales siguen condicionados a las validaciones institucionales documentadas.
 
@@ -19,6 +19,7 @@ Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/
 El análisis completo se encuentra en [docs/phase-0-technical-plan.md](docs/phase-0-technical-plan.md).
 El alcance y los controles del scaffold se encuentran en [docs/phase-1-base-architecture.md](docs/phase-1-base-architecture.md).
 El sistema de diseño y sus prototipos se documentan en [docs/phase-2-visual-system.md](docs/phase-2-visual-system.md).
+El modelo de identidad, RLS y Auth se documentan en [docs/phase-3-identity-and-auth.md](docs/phase-3-identity-and-auth.md).
 Los responsables confirmados y las designaciones institucionales pendientes se encuentran en [docs/governance.md](docs/governance.md).
 
 Proyecto Supabase vinculado: `aws-student-community-platform`, región `sa-east-1`, referencia `xxulvvszfijaeeqvrxwy`.
@@ -34,13 +35,15 @@ aws-student-community-platform/
 │   ├── governance.md
 │   ├── phase-0-technical-plan.md
 │   ├── phase-1-base-architecture.md
-│   └── phase-2-visual-system.md
+│   ├── phase-2-visual-system.md
+│   └── phase-3-identity-and-auth.md
 ├── src/
 │   ├── app/                  # Inicio, eventos y preview de dashboard
 │   ├── components/           # Layout, home, eventos y dashboard
-│   ├── features/events/      # Fixtures de prototipo, no datos reales
+│   ├── features/             # Auth y fixtures de eventos
 │   └── lib/supabase/
 ├── supabase/
+│   ├── migrations/
 │   └── config.toml
 ├── .github/workflows/ci.yml
 ├── .env.example
@@ -49,7 +52,7 @@ aws-student-community-platform/
 └── README.md
 ```
 
-Las vistas de Fase 2 usan fixtures locales. Las migraciones, RLS y funcionalidades se incorporarán de forma incremental en las siguientes fases.
+Las vistas de eventos todavía usan fixtures locales. El dashboard real solo muestra identidad y rol; las demás métricas se incorporarán en fases posteriores.
 
 ## Variables de entorno
 
@@ -71,4 +74,7 @@ npm run dev
 npm run lint
 npm run typecheck
 npm run build
+npm run test:rls
 ```
+
+`test:rls` requiere variables locales y una credencial server-only cargada únicamente durante la prueba. Nunca debe guardarse esa credencial en el repositorio.
