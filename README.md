@@ -4,7 +4,7 @@ Plataforma digital propuesta para AWS Student Builder Group PUCE: sitio instituc
 
 ## Estado
 
-**Fase 0 — preparación final.** El repositorio contiene preparación documental, Supabase CLI y controles básicos de seguridad. Todavía no contiene una aplicación Next.js, páginas, componentes o funcionalidades de producto.
+**Fase 1 — configuración base en curso.** El repositorio ya incluye el scaffold de Next.js, TypeScript estricto, Tailwind CSS, ESLint y adaptadores SSR de Supabase. Aún no contiene funcionalidades de autenticación, modelo de datos ni contenido de producto.
 
 Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/decisions-pending-approval.md](docs/decisions-pending-approval.md). La Fase 1 puede iniciar el scaffold técnico; la publicación y el tratamiento de datos reales siguen condicionados a las validaciones institucionales documentadas.
 
@@ -17,6 +17,7 @@ Las decisiones críticas D-001 a D-008 están aprobadas y documentadas en [docs/
 - GitHub Flow para cambios revisables; no se harán commits ni publicaciones remotas sin solicitud expresa.
 
 El análisis completo se encuentra en [docs/phase-0-technical-plan.md](docs/phase-0-technical-plan.md).
+El alcance y los controles del scaffold se encuentran en [docs/phase-1-base-architecture.md](docs/phase-1-base-architecture.md).
 Los responsables confirmados y las designaciones institucionales pendientes se encuentran en [docs/governance.md](docs/governance.md).
 
 Proyecto Supabase vinculado: `aws-student-community-platform`, región `sa-east-1`, referencia `xxulvvszfijaeeqvrxwy`.
@@ -30,16 +31,21 @@ aws-student-community-platform/
 ├── docs/
 │   ├── decisions-pending-approval.md
 │   ├── governance.md
-│   └── phase-0-technical-plan.md
+│   ├── phase-0-technical-plan.md
+│   └── phase-1-base-architecture.md
+├── src/
+│   ├── app/
+│   └── lib/supabase/
 ├── supabase/
 │   └── config.toml
+├── .github/workflows/ci.yml
 ├── .env.example
 ├── .gitignore
 ├── package.json
 └── README.md
 ```
 
-La estructura `src/`, `public/`, la configuración de Next.js y las dependencias se crearán en la Fase 1, después de la aprobación.
+Las rutas de producto, componentes de interfaz, migraciones y funcionalidades se incorporarán de forma incremental en las siguientes fases.
 
 ## Variables de entorno
 
@@ -56,4 +62,9 @@ Se proponen las claves actuales `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `SUPABA
 
 ## Comandos
 
-No hay comandos de instalación o ejecución todavía. Se añadirán cuando exista el scaffold aprobado de Next.js.
+```bash
+npm run dev
+npm run lint
+npm run typecheck
+npm run build
+```
