@@ -1,4 +1,4 @@
-import { CalendarDays, LayoutDashboard, LogOut, Settings, ShieldCheck, UserRound } from "lucide-react";
+import { Award, CalendarDays, LayoutDashboard, LogOut, Settings, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import { SubmitButton } from "@/components/forms/submit-button";
@@ -6,7 +6,7 @@ import { signOutAction } from "@/features/auth/actions";
 import type { AppRole } from "@/features/auth/session";
 
 type DashboardNavigationProperties = Readonly<{
-  activePage: "events" | "overview" | "profile";
+  activePage: "events" | "overview" | "profile" | "progress";
   role: AppRole;
 }>;
 
@@ -18,6 +18,7 @@ const navigationItems: readonly Readonly<{
 }>[] = [
   { Icon: LayoutDashboard, href: "/dashboard", id: "overview", label: "Resumen" },
   { Icon: CalendarDays, href: "/dashboard/eventos", id: "events", label: "Mis eventos" },
+  { Icon: Award, href: "/dashboard/progreso", id: "progress", label: "Mi progreso" },
   { Icon: UserRound, href: "/dashboard/perfil", id: "profile", label: "Mi perfil" },
 ];
 

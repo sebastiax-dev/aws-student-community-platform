@@ -20,13 +20,20 @@ const messages: Readonly<Record<string, string>> = {
   invalid_image: "La imagen no cumple el formato o tamaño permitido.",
   child_order_conflict: "Ese número de orden ya está en uso dentro de la sección.",
   invalid_agenda_item: "Revisa el título, orden y fechas de la actividad.",
+  invalid_attendance: "No se pudo interpretar el cambio de asistencia solicitado.",
+  invalid_certificate: "Revisa el nombre y la fecha de emisión del certificado.",
   invalid_input: "Revisa los campos obligatorios, fechas y URLs HTTPS.",
   invalid_private_details: "Revisa que la URL privada use HTTPS y que las notas no excedan el límite.",
   invalid_registration_status: "El estado de inscripción seleccionado no es válido.",
   invalid_resource: "Revisa el nombre, orden y URL HTTPS del recurso.",
   invalid_speaker: "Revisa el nombre, orden y datos del ponente.",
+  active_certificate_not_found: "Ese certificado ya no está activo o no existe.",
+  attendance_required_for_certificate: "Primero registra la asistencia del estudiante para emitir su certificado.",
   agenda_item_created: "La actividad fue añadida a la agenda.",
   agenda_item_deleted: "La actividad fue eliminada de la agenda.",
+  attendance_updated: "La asistencia fue actualizada y el historial de puntos se recalculó.",
+  certificate_issued: "El certificado fue emitido correctamente.",
+  certificate_revoked: "El certificado fue revocado y se conservó su historial.",
   private_details_updated: "Los detalles privados fueron guardados.",
   published_delete_forbidden: "Un evento que ya fue publicado no puede eliminarse. Despublícalo o márcalo como finalizado.",
   registration_updated: "El estado de la inscripción fue actualizado.",
@@ -36,6 +43,7 @@ const messages: Readonly<Record<string, string>> = {
   speaker_deleted: "El ponente fue eliminado.",
   slug_conflict: "Ya existe un evento con ese slug. Usa uno diferente.",
   updated: "Los cambios fueron guardados correctamente.",
+  use_attendance_control: "Usa el control de asistencia para marcar la participación y asignar puntos.",
 };
 
 export default async function EditEventPage({ params, searchParams }: EditEventPageProperties): Promise<React.ReactNode> {

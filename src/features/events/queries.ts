@@ -175,11 +175,23 @@ export async function getOwnEventRegistrationStatus(eventId: string, userId: str
 
 export async function listAdminEventRegistrations(eventId: string): Promise<readonly AdminEventRegistration[]> {
   const supabase = await createSupabaseServerClient();
-  const registrationResult = await executeEventQuery("listAdminEventRegistrations", () => supabase
-    .from("event_registrations")
-    .select("id, registered_at, source, status, user_id")
-    .eq("event_id", eventId)
-    .order("registered_at", { ascending: false }));
+  const [attendanceResult, certificateResult, registrationResult] = await Promise.all([
+    executeEventQuery("listAdminEventAttendance", () => supabase
+      .from("attendance")
+      .select("attended, user_id")
+      .eq("event_id", eventId)),
+    executeEventQuery("listAdminEventCertificates", () => supabase
+      .from("certifications")
+      .select("certificate_name, id, issued_at, user_id")
+      .eq("event_id", eventId)
+      .is("revoked_at", null)
+      .order("issued_at", { ascending: false })),
+    executeEventQuery("listAdminEventRegistrations", () => supabase
+      .from("event_registrations")
+      .select("id, registered_at, source, status, user_id")
+      .eq("event_id", eventId)
+      .order("registered_at", { ascending: false })),
+  ]);
   const registrations = requireEventQueryData("listAdminEventRegistrations", registrationResult.data);
 
   if (registrations.length === 0) {
@@ -193,9 +205,18 @@ export async function listAdminEventRegistrations(eventId: string): Promise<read
     .in("id", userIds));
   const profiles = requireEventQueryData("listAdminRegistrationProfiles", profileResult.data);
   const displayNames = new Map(profiles.map((profile) => [profile.id, profile.display_name]));
-
+  const attendance = requireEventQueryData("listAdminEventAttendance", attendanceResult.data);
+  const certificates = requireEventQueryData("listAdminEventCertificates", certificateResult.data);
+  const attendedUsers = new Set(attendance.filter((record) => record.attended).map((record) => record.user_id));
+  const certificatesByUserId = new Map<string, readonly Readonly<{ certificate_name: string; id: string; issued_at: string; }>[]>();
+  certificates.forEach((certificate) => {
+    const existing = certificatesByUserId.get(certificate.user_id) ?? [];
+    certificatesByUserId.set(certificate.user_id, [...existing, certificate]);
+  });
   return registrations.map((registration) => ({
     ...registration,
+    attended: attendedUsers.has(registration.user_id),
+    certifications: certificatesByUserId.get(registration.user_id) ?? [],
     display_name: displayNames.get(registration.user_id) ?? "Perfil no disponible",
   }));
 }
