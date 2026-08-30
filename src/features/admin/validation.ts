@@ -58,7 +58,6 @@ export const socialLinkSchema = z.object({
 export const teamMemberSchema = z.object({
   active: z.boolean(),
   description: z.string().trim().min(10).max(600),
-  imageUrl: z.union([z.literal(""), z.url().refine((url) => url.startsWith("https://"), "La imagen debe usar HTTPS.")]),
   name: z.string().trim().min(2).max(80),
   roleTitle: z.string().trim().min(2).max(100),
   sortOrder: z.coerce.number().int().min(0).max(1000),

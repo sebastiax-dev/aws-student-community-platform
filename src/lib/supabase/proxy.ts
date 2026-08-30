@@ -4,6 +4,18 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getPublicSupabaseEnvironment } from "@/lib/env";
 import type { Database } from "@/types/database.generated";
 
+function isSupabaseAuthCookie(name: string): boolean {
+  return name.startsWith("sb-") && name.includes("-auth-token");
+}
+
+function clearInvalidRefreshSession(request: NextRequest): NextResponse {
+  const response = NextResponse.next({ request });
+  request.cookies.getAll().filter((cookie) => isSupabaseAuthCookie(cookie.name)).forEach((cookie) => {
+    response.cookies.set(cookie.name, "", { maxAge: 0, path: "/" });
+  });
+  return response;
+}
+
 export async function updateSupabaseSession(request: NextRequest): Promise<NextResponse> {
   const environment = getPublicSupabaseEnvironment();
   let response = NextResponse.next({ request });
@@ -21,6 +33,10 @@ export async function updateSupabaseSession(request: NextRequest): Promise<NextR
   });
 
   const { error } = await supabase.auth.getClaims();
+
+  if (error?.code === "refresh_token_not_found") {
+    return clearInvalidRefreshSession(request);
+  }
 
   if (error !== null && error.name !== "AuthSessionMissingError") {
     throw new Error(`Supabase session validation failed: name=${error.name}, status=${error.status}, code=${error.code}, message=${error.message}`);

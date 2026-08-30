@@ -43,6 +43,13 @@ function parseSiteContent(rows: readonly SettingRow[], supabase: SupabaseClient<
   };
 }
 
+function toTeamMember(row: Database["public"]["Tables"]["team_members"]["Row"], supabase: SupabaseClient<Database>): TeamMember {
+  return {
+    ...row,
+    image_public_url: row.image_path === null ? row.image_url : getPublicSiteImageUrl(supabase, row.image_path),
+  };
+}
+
 export async function getSiteContent(): Promise<SiteContent> {
   const supabase = await createSupabaseServerClient();
   const result = await executeAdminQuery("getSiteContent", () => supabase
@@ -112,7 +119,7 @@ export async function listAdminTeamMembers(): Promise<readonly TeamMember[]> {
     .select("*")
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true }));
-  return requireAdminQueryData("listAdminTeamMembers", result.data);
+  return requireAdminQueryData("listAdminTeamMembers", result.data).map((row) => toTeamMember(row, supabase));
 }
 
 export async function listPublicTeamMembers(): Promise<readonly TeamMember[]> {
@@ -123,5 +130,5 @@ export async function listPublicTeamMembers(): Promise<readonly TeamMember[]> {
     .eq("active", true)
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true }));
-  return requireAdminQueryData("listPublicTeamMembers", result.data);
+  return requireAdminQueryData("listPublicTeamMembers", result.data).map((row) => toTeamMember(row, supabase));
 }

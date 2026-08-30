@@ -274,7 +274,6 @@ function parseTeamMember(formData: FormData): ReturnType<typeof teamMemberSchema
   return teamMemberSchema.safeParse({
     active: formData.get("active") === "on",
     description: formData.get("description"),
-    imageUrl: formData.get("imageUrl"),
     name: formData.get("name"),
     roleTitle: formData.get("roleTitle"),
     sortOrder: formData.get("sortOrder"),
@@ -286,17 +285,26 @@ export async function createTeamMemberAction(formData: FormData): Promise<never>
   if (!result.success) {
     redirect("/dashboard/admin/contenido?error=invalid_team_member");
   }
+  const image = parseSiteImageOrRedirect(formData, "memberImage", "/dashboard/admin/contenido");
   const adminUserId = await requireAdmin("createTeamMember");
   const supabase = await createSupabaseServerClient();
-  await executeAdminQuery("createTeamMember", () => supabase.from("team_members").insert({
-    active: result.data.active,
-    description: result.data.description,
-    image_url: result.data.imageUrl.length === 0 ? null : result.data.imageUrl,
-    name: result.data.name,
-    role_title: result.data.roleTitle,
-    sort_order: result.data.sortOrder,
-    updated_by: adminUserId,
-  }));
+  const memberId = crypto.randomUUID();
+  const imagePath = image === null ? null : await uploadSiteImage(supabase, "team-members", memberId, image);
+  try {
+    await executeAdminQuery("createTeamMember", () => supabase.from("team_members").insert({
+      active: result.data.active,
+      description: result.data.description,
+      id: memberId,
+      image_path: imagePath,
+      image_url: null,
+      name: result.data.name,
+      role_title: result.data.roleTitle,
+      sort_order: result.data.sortOrder,
+      updated_by: adminUserId,
+    }));
+  } catch (error) {
+    await removeUploadedSiteImageAfterFailure(supabase, imagePath, error);
+  }
   revalidatePath("/");
   redirect("/dashboard/admin/contenido?status=team_member_created");
 }
@@ -307,17 +315,39 @@ export async function updateTeamMemberAction(teamMemberId: string, formData: For
   if (!result.success) {
     redirect("/dashboard/admin/contenido?error=invalid_team_member");
   }
+  const image = parseSiteImageOrRedirect(formData, "memberImage", "/dashboard/admin/contenido");
+  const removeImage = formData.get("removeImage") === "on";
+  if (image !== null && removeImage) {
+    redirect("/dashboard/admin/contenido?error=conflicting_member_image_change");
+  }
   const adminUserId = await requireAdmin("updateTeamMember");
   const supabase = await createSupabaseServerClient();
-  await executeAdminQuery("updateTeamMember", () => supabase.from("team_members").update({
-    active: result.data.active,
-    description: result.data.description,
-    image_url: result.data.imageUrl.length === 0 ? null : result.data.imageUrl,
-    name: result.data.name,
-    role_title: result.data.roleTitle,
-    sort_order: result.data.sortOrder,
-    updated_by: adminUserId,
-  }).eq("id", id));
+  const currentResult = await executeAdminQuery("getTeamMemberBeforeUpdate", () => supabase
+    .from("team_members")
+    .select("image_path, image_url")
+    .eq("id", id)
+    .single());
+  if (currentResult.data === null) {
+    throw new Error(`Team member does not exist: id=${id}`);
+  }
+  const imagePath = image === null ? (removeImage ? null : currentResult.data.image_path) : await uploadSiteImage(supabase, "team-members", id, image);
+  try {
+    await executeAdminQuery("updateTeamMember", () => supabase.from("team_members").update({
+      active: result.data.active,
+      description: result.data.description,
+      image_path: imagePath,
+      image_url: image === null && !removeImage ? currentResult.data.image_url : null,
+      name: result.data.name,
+      role_title: result.data.roleTitle,
+      sort_order: result.data.sortOrder,
+      updated_by: adminUserId,
+    }).eq("id", id));
+  } catch (error) {
+    await removeUploadedSiteImageAfterFailure(supabase, image === null ? null : imagePath, error);
+  }
+  if (currentResult.data.image_path !== null && currentResult.data.image_path !== imagePath) {
+    await deleteSiteImage(supabase, currentResult.data.image_path);
+  }
   revalidatePath("/");
   redirect("/dashboard/admin/contenido?status=team_member_updated");
 }
@@ -326,7 +356,18 @@ export async function deleteTeamMemberAction(teamMemberId: string): Promise<neve
   const id = requireIdentifier(teamMemberId, "deleteTeamMember");
   await requireAdmin("deleteTeamMember");
   const supabase = await createSupabaseServerClient();
+  const currentResult = await executeAdminQuery("getTeamMemberBeforeDelete", () => supabase
+    .from("team_members")
+    .select("image_path")
+    .eq("id", id)
+    .single());
+  if (currentResult.data === null) {
+    throw new Error(`Team member does not exist: id=${id}`);
+  }
   await executeAdminQuery("deleteTeamMember", () => supabase.from("team_members").delete().eq("id", id));
+  if (currentResult.data.image_path !== null) {
+    await deleteSiteImage(supabase, currentResult.data.image_path);
+  }
   revalidatePath("/");
   redirect("/dashboard/admin/contenido?status=team_member_deleted");
 }
