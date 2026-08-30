@@ -11,7 +11,7 @@ type StorageResult = Readonly<{
   error: StorageErrorShape | null;
 }>;
 
-type SiteAssetDirectory = "branding" | "social-icons";
+type SiteAssetDirectory = "branding" | "social-icons" | "team-members";
 
 const allowedImageTypes: Readonly<Record<string, string>> = {
   "image/avif": "avif",

@@ -5,7 +5,9 @@ export type AdminAttendanceRow = Database["public"]["Functions"]["admin_list_att
 export type SocialLink = Database["public"]["Tables"]["social_links"]["Row"] & Readonly<{
   icon_image_url: string | null;
 }>;
-export type TeamMember = Database["public"]["Tables"]["team_members"]["Row"];
+export type TeamMember = Database["public"]["Tables"]["team_members"]["Row"] & Readonly<{
+  image_public_url: string | null;
+}>;
 
 export type HomeContent = Readonly<{
   description: string;
