@@ -1,0 +1,2 @@
+-- Historic migration version already applied to the linked remote database.
+-- The recovered schema snapshot migration contains its effective DDL.

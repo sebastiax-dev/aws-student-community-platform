@@ -14,7 +14,7 @@ type EventFormProperties = Readonly<{
 export function EventForm({ action, event, submitLabel }: EventFormProperties): React.ReactNode {
   return (
     <form action={action} className="admin-form surface">
-      <div className="admin-form__heading"><div><p className="eyebrow">CONTENIDO PÚBLICO</p><h2>Información principal</h2></div><SubmitButton className="button button--primary" pendingLabel="Guardando…">{submitLabel}</SubmitButton></div>
+      <div className="admin-form__heading"><div><p className="eyebrow">CONTENIDO PÚBLICO</p><h2>Información principal</h2></div><div className="admin-inline-actions"><button className="button button--secondary" name="submissionIntent" type="submit" value="draft">Guardar borrador</button><SubmitButton className="button button--primary" pendingLabel="Guardando…">{submitLabel}</SubmitButton></div></div>
       <div className="admin-form__grid">
         <label className="admin-form__wide">Título<input defaultValue={event?.title ?? ""} maxLength={120} minLength={3} name="title" required type="text" /></label>
         <label>Slug<input defaultValue={event?.slug ?? ""} maxLength={120} name="slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="Se genera desde el título" type="text" /></label>
@@ -34,7 +34,7 @@ export function EventForm({ action, event, submitLabel }: EventFormProperties): 
         <label className="admin-form__wide">Imagen del evento<input accept="image/avif,image/jpeg,image/png,image/webp" name="image" type="file" /><small>AVIF, JPG, PNG o WebP. Máximo 5 MiB.</small></label>
         {event?.image_url === null || event?.image_url === undefined ? null : <div className="admin-form__image"><Image alt={`Imagen actual de ${event.title}`} fill sizes="480px" src={event.image_url} /></div>}
       </div>
-      <div className="admin-form__footer"><SubmitButton className="button button--primary" pendingLabel="Guardando…">{submitLabel}</SubmitButton></div>
+      <div className="admin-form__footer"><button className="button button--secondary" name="submissionIntent" type="submit" value="draft">Guardar borrador</button><SubmitButton className="button button--primary" pendingLabel="Guardando…">{submitLabel}</SubmitButton></div>
     </form>
   );
 }

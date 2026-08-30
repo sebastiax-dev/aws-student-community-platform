@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { EventForm } from "@/components/admin/event-form";
 import { EventDetailManagement } from "@/components/admin/event-detail-management";
 import { SubmitButton } from "@/components/forms/submit-button";
-import { deleteDraftEventAction, updateEventAction } from "@/features/events/actions";
+import { deleteEventAction, updateEventAction } from "@/features/events/actions";
 import { getAdminEventById, listAdminEventRegistrations } from "@/features/events/queries";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ const messages: Readonly<Record<string, string>> = {
   certificate_issued: "El certificado fue emitido correctamente.",
   certificate_revoked: "El certificado fue revocado y se conservó su historial.",
   private_details_updated: "Los detalles privados fueron guardados.",
-  published_delete_forbidden: "Un evento que ya fue publicado no puede eliminarse. Despublícalo o márcalo como finalizado.",
+  published_removed: "El evento publicado fue retirado de la web y de los dashboards, conservando su historial.",
   registration_updated: "El estado de la inscripción fue actualizado.",
   resource_created: "El recurso fue añadido.",
   resource_deleted: "El recurso fue eliminado.",
@@ -57,7 +57,7 @@ export default async function EditEventPage({ params, searchParams }: EditEventP
   const messageCode = parameters.error === undefined ? parameters.status : parameters.error;
   const message = messageCode === undefined ? null : messages[messageCode] ?? null;
   const updateAction = updateEventAction.bind(null, event.id);
-  const deleteAction = deleteDraftEventAction.bind(null, event.id);
+  const deleteAction = deleteEventAction.bind(null, event.id);
 
   return (
     <section className="admin-section">
@@ -66,7 +66,7 @@ export default async function EditEventPage({ params, searchParams }: EditEventP
       {message === null ? null : <div aria-live="polite" className="auth-message">{message}</div>}
       <EventForm action={updateAction} event={event} submitLabel="Guardar cambios" />
       <EventDetailManagement event={event} registrations={registrations} />
-      <section className="surface danger-zone"><div><h2>Eliminación</h2><p>{event.published_at === null ? "Este borrador puede eliminarse de forma permanente." : "Los eventos publicados se conservan para mantener historial y auditoría."}</p></div>{event.published_at === null ? <form action={deleteAction}><SubmitButton className="button button--danger" pendingLabel="Eliminando…"><Trash2 size={15} /> Eliminar borrador</SubmitButton></form> : null}</section>
+      <section className="surface danger-zone"><div><h2>Eliminación</h2><p>{event.published_at === null ? "Este borrador se eliminará de forma permanente." : "El evento publicado se retirará de la web y de los dashboards, pero se conservarán asistencia, puntos y certificados."}</p></div><form action={deleteAction}><SubmitButton className="button button--danger" pendingLabel="Eliminando…"><Trash2 size={15} /> {event.published_at === null ? "Eliminar borrador" : "Eliminar evento publicado"}</SubmitButton></form></section>
     </section>
   );
 }

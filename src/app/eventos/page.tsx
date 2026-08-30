@@ -1,7 +1,8 @@
-import { CalendarDays, Monitor, SlidersHorizontal, UsersRound } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import Link from "next/link";
 
 import { EventCard } from "@/components/events/event-card";
+import { EventNavigation, type EventFilter, type EventOrder } from "@/components/events/event-navigation";
 import { SiteHeader } from "@/components/layout/site-header";
 import { MotionEventCard } from "@/components/motion/reveal";
 import { listPublishedEvents } from "@/features/events/queries";
@@ -9,21 +10,16 @@ import type { EventCardModel } from "@/features/events/types";
 
 export const dynamic = "force-dynamic";
 
-type EventFilter = "all" | "in_person" | "upcoming" | "virtual";
-
 type EventsPageProperties = Readonly<{
-  searchParams: Promise<{ filtro?: string }>;
+  searchParams: Promise<{ filtro?: string; orden?: string }>;
 }>;
 
-const filterItems: readonly Readonly<{ filter: EventFilter; href: string; label: string; Icon: typeof CalendarDays }>[] = [
-  { filter: "all", href: "/eventos", label: "Todos los eventos", Icon: CalendarDays },
-  { filter: "in_person", href: "/eventos?filtro=in_person", label: "Presenciales", Icon: UsersRound },
-  { filter: "virtual", href: "/eventos?filtro=virtual", label: "Virtuales", Icon: Monitor },
-  { filter: "upcoming", href: "/eventos?filtro=upcoming", label: "Próximos", Icon: SlidersHorizontal },
-];
-
 function parseEventFilter(candidate: string | undefined): EventFilter {
-  return candidate === "in_person" || candidate === "virtual" || candidate === "upcoming" ? candidate : "all";
+  return candidate === "finished" || candidate === "in_person" || candidate === "virtual" || candidate === "upcoming" ? candidate : "all";
+}
+
+function parseEventOrder(candidate: string | undefined): EventOrder {
+  return candidate === "oldest" || candidate === "upcoming" ? candidate : "newest";
 }
 
 function filterEvents(events: readonly EventCardModel[], filter: EventFilter): readonly EventCardModel[] {
@@ -36,13 +32,25 @@ function filterEvents(events: readonly EventCardModel[], filter: EventFilter): r
   if (filter === "upcoming") {
     return events.filter((event) => event.status !== "FINISHED");
   }
+  if (filter === "finished") {
+    return events.filter((event) => event.status === "FINISHED");
+  }
   return events;
+}
+
+function orderEvents(events: readonly EventCardModel[], order: EventOrder): readonly EventCardModel[] {
+  const direction = order === "oldest" ? 1 : -1;
+  if (order === "upcoming") {
+    return [...events].sort((left, right) => new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime());
+  }
+  return [...events].sort((left, right) => direction * (new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime()));
 }
 
 export default async function EventsPage({ searchParams }: EventsPageProperties): Promise<React.ReactNode> {
   const parameters = await searchParams;
   const activeFilter = parseEventFilter(parameters.filtro);
-  const events = filterEvents(await listPublishedEvents(), activeFilter);
+  const activeOrder = parseEventOrder(parameters.orden);
+  const events = orderEvents(filterEvents(await listPublishedEvents(), activeFilter), activeOrder);
 
   return (
     <div className="page-shell">
@@ -53,9 +61,7 @@ export default async function EventsPage({ searchParams }: EventsPageProperties)
           <h1>EVENTOS <span>DEL CICLO</span></h1>
           <p>Participa en nuestros eventos, talleres y workshops diseñados para impulsar tus habilidades en la nube y conectar con la comunidad.</p>
         </section>
-        <nav aria-label="Filtros de eventos" className="events-toolbar">
-          {filterItems.map(({ Icon, filter, href, label }) => <Link className="filter-chip" data-active={filter === activeFilter} href={href} key={filter}><Icon size={15} /> {label}</Link>)}
-        </nav>
+        <EventNavigation activeFilter={activeFilter} activeOrder={activeOrder} />
         {events.length === 0
           ? <section className="empty-state surface"><CalendarDays aria-hidden="true" size={32} /><h2>No hay eventos para este filtro</h2><p>Los próximos eventos aparecerán aquí cuando el equipo los publique.</p></section>
           : <section aria-label="Listado de eventos" className="event-grid">{events.map((event, index) => <MotionEventCard delay={index * 0.08} key={event.id}><EventCard event={event} featured={index === 0} /></MotionEventCard>)}</section>}

@@ -2,6 +2,7 @@ import { executeEventQuery, requireEventQueryData } from "@/features/events/requ
 import { getEventImageUrl } from "@/features/events/image-url";
 import type { AdminEventDetail, AdminEventRegistration, AdminEventSummary, EventCardModel, PublicEventDetail, RegistrationStatus } from "@/features/events/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database.generated";
 
 const eventCardColumns = "capacity, ends_at, id, image_path, location, modality, registration_closes_at, registration_opens_at, registration_url, slug, starts_at, status, summary, title" as const;
 const eventDetailColumns = "capacity, description, ends_at, id, image_path, location, modality, registration_closes_at, registration_opens_at, registration_url, requirements, slug, starts_at, status, summary, title" as const;
@@ -11,6 +12,10 @@ type EventCardRow = Omit<EventCardModel, "image_url">;
 
 function toEventCardModel(event: EventCardRow): EventCardModel {
   return { ...event, image_url: getEventImageUrl(event.image_path) };
+}
+
+function toEventSpeakerModel(speaker: Pick<Database["public"]["Tables"]["event_speakers"]["Row"], "bio" | "id" | "image_path" | "name" | "role_title" | "sort_order">): Readonly<Pick<Database["public"]["Tables"]["event_speakers"]["Row"], "bio" | "id" | "image_path" | "name" | "role_title" | "sort_order"> & { image_url: string | null }> {
+  return { ...speaker, image_url: getEventImageUrl(speaker.image_path) };
 }
 
 function sortPublishedEvents(events: readonly EventCardModel[]): readonly EventCardModel[] {
@@ -33,6 +38,7 @@ export async function listPublishedEvents(): Promise<readonly EventCardModel[]> 
     .from("events")
     .select(eventCardColumns)
     .eq("is_published", true)
+    .is("deleted_at", null)
     .limit(100));
 
   return sortPublishedEvents(requireEventQueryData("listPublishedEvents", result.data).map(toEventCardModel));
@@ -44,6 +50,7 @@ export async function listHomeEvents(): Promise<readonly EventCardModel[]> {
     .from("events")
     .select(eventCardColumns)
     .eq("is_published", true)
+    .is("deleted_at", null)
     .in("status", ["ACTIVE", "PLANNED"])
     .order("starts_at", { ascending: true })
     .limit(3));
@@ -58,6 +65,7 @@ export async function getPublishedEventBySlug(slug: string): Promise<PublicEvent
     .select(eventDetailColumns)
     .eq("slug", slug)
     .eq("is_published", true)
+    .is("deleted_at", null)
     .maybeSingle());
 
   if (eventResult.data === null) {
@@ -79,7 +87,7 @@ export async function getPublishedEventBySlug(slug: string): Promise<PublicEvent
       .order("sort_order", { ascending: true })),
     executeEventQuery("listPublishedEventSpeakers", () => supabase
       .from("event_speakers")
-      .select("bio, id, name, role_title, sort_order")
+      .select("bio, id, image_path, name, role_title, sort_order")
       .eq("event_id", event.id)
       .order("sort_order", { ascending: true })),
   ]);
@@ -90,7 +98,7 @@ export async function getPublishedEventBySlug(slug: string): Promise<PublicEvent
     description: event.description,
     requirements: event.requirements,
     resources: requireEventQueryData("listPublishedEventResources", resourceResult.data),
-    speakers: requireEventQueryData("listPublishedEventSpeakers", speakerResult.data),
+    speakers: requireEventQueryData("listPublishedEventSpeakers", speakerResult.data).map(toEventSpeakerModel),
   };
 }
 
@@ -99,6 +107,7 @@ export async function listAdminEvents(): Promise<readonly AdminEventSummary[]> {
   const result = await executeEventQuery("listAdminEvents", () => supabase
     .from("events")
     .select(adminEventColumns)
+    .is("deleted_at", null)
     .order("starts_at", { ascending: false })
     .limit(200));
 
@@ -116,6 +125,7 @@ export async function getAdminEventById(eventId: string): Promise<AdminEventDeta
     .from("events")
     .select(adminEventColumns)
     .eq("id", eventId)
+    .is("deleted_at", null)
     .maybeSingle());
 
   if (eventResult.data === null) {
@@ -156,7 +166,7 @@ export async function getAdminEventById(eventId: string): Promise<AdminEventDeta
     published_at: event.published_at,
     requirements: event.requirements,
     resources: requireEventQueryData("listAdminEventResources", resourceResult.data),
-    speakers: requireEventQueryData("listAdminEventSpeakers", speakerResult.data),
+    speakers: requireEventQueryData("listAdminEventSpeakers", speakerResult.data).map((speaker) => ({ ...speaker, image_url: getEventImageUrl(speaker.image_path) })),
     updated_at: event.updated_at,
   };
 }
