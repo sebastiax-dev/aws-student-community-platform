@@ -17,6 +17,7 @@ export default async function AdminEventsPage({ searchParams }: AdminEventsPageP
   return (
     <section className="admin-section">
       {parameters.status === "deleted" ? <div aria-live="polite" className="auth-message">El borrador fue eliminado correctamente.</div> : null}
+      {parameters.status === "published_removed" ? <div aria-live="polite" className="auth-message">El evento fue retirado de la web y de los dashboards de usuarios.</div> : null}
       <div className="admin-section__heading"><div><h2>Eventos</h2><p>{events.length} registros visibles para administración.</p></div></div>
       {events.length === 0
         ? <div className="empty-state surface"><CalendarDays size={32} /><h3>Aún no hay eventos</h3><p>Crea el primer evento para reemplazar los prototipos locales por contenido administrable.</p><Link className="button button--primary" href="/dashboard/admin/eventos/nuevo">Crear evento</Link></div>

@@ -1,12 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { z } from "zod";
 
 import { AuthenticationServiceError } from "@/features/auth/errors";
 import { getSafeAuthenticationRedirectPath, UnsafeAuthenticationRedirectError } from "@/features/auth/redirect";
 import { executeAuthRequest } from "@/features/auth/request";
 import { getAuthenticatedUserId } from "@/features/auth/session";
+import { getSessionPersistenceMaxAge, shouldPersistSession } from "@/features/auth/session-persistence";
 import { getPublicSupabaseEnvironment } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -23,6 +25,20 @@ const updatePasswordSchema = z.object({
   confirmPassword: passwordSchema,
   password: passwordSchema,
 }).refine((values) => values.password === values.confirmPassword, { path: ["confirmPassword"] });
+
+async function applySessionPersistence(shouldPersist: boolean): Promise<void> {
+  const cookieStore = await cookies();
+  const maxAge = getSessionPersistenceMaxAge(shouldPersist);
+  cookieStore.getAll()
+    .filter((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"))
+    .forEach((cookie) => cookieStore.set(cookie.name, cookie.value, {
+      httpOnly: true,
+      maxAge,
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    }));
+}
 
 function isRateLimited(status: number | undefined): boolean {
   return status === 429;
@@ -58,6 +74,8 @@ export async function signInAction(formData: FormData): Promise<never> {
     }
     throw new AuthenticationServiceError("signInWithPassword", result.error);
   }
+
+  await applySessionPersistence(shouldPersistSession(formData.get("rememberSession") === "on" ? undefined : "false"));
 
   redirect(nextPath);
 }

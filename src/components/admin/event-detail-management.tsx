@@ -1,4 +1,5 @@
 import { Award, CalendarDays, ClipboardCheck, Link as LinkIcon, LockKeyhole, Plus, Trash2, Users } from "lucide-react";
+import Image from "next/image";
 
 import { SubmitButton } from "@/components/forms/submit-button";
 import {
@@ -61,13 +62,14 @@ export function EventDetailManagement({ event, registrations }: EventDetailManag
         <div className="admin-form__heading"><div><p className="eyebrow"><Users size={14} /> PROGRAMA</p><h2>Ponentes</h2></div><span className="admin-count">{event.speakers.length}</span></div>
         {event.speakers.length === 0 ? <p className="admin-empty-copy">Todavía no hay ponentes.</p> : <div className="admin-child-list">{event.speakers.map((speaker) => {
           const deleteAction = deleteEventSpeakerAction.bind(null, event.id, event.slug, speaker.id);
-          return <article key={speaker.id}><div><strong>{speaker.sort_order}. {speaker.name}</strong><span>{speaker.role_title ?? "Sin cargo"}</span>{speaker.bio === null ? null : <p>{speaker.bio}</p>}</div><form action={deleteAction}><SubmitButton ariaLabel={`Eliminar a ${speaker.name}`} className="icon-button icon-button--danger" pendingLabel="…"><Trash2 size={16} /></SubmitButton></form></article>;
+          return <article key={speaker.id}><div className="admin-speaker"><span className="admin-speaker__image">{speaker.image_url === null ? speaker.name.slice(0, 1).toUpperCase() : <Image alt={`Foto de ${speaker.name}`} fill sizes="48px" src={speaker.image_url} unoptimized />}</span><div><strong>{speaker.sort_order}. {speaker.name}</strong><span>{speaker.role_title ?? "Sin cargo"}</span>{speaker.bio === null ? null : <p>{speaker.bio}</p>}</div></div><form action={deleteAction}><SubmitButton ariaLabel={`Eliminar a ${speaker.name}`} className="icon-button icon-button--danger" pendingLabel="…"><Trash2 size={16} /></SubmitButton></form></article>;
         })}</div>}
-        <form action={speakerAction} className="admin-form__grid admin-subform">
+        <form action={speakerAction} className="admin-form__grid admin-subform" encType="multipart/form-data">
           <label>Nombre<input maxLength={120} minLength={2} name="name" required type="text" /></label>
           <label>Cargo o afiliación<input maxLength={160} name="roleTitle" type="text" /></label>
           <label>Orden<input min={0} name="sortOrder" required type="number" /></label>
           <label className="admin-form__wide">Biografía breve<textarea maxLength={1000} name="bio" rows={3} /></label>
+          <label className="admin-form__wide">Foto del ponente<input accept="image/avif,image/jpeg,image/png,image/webp" name="speakerImage" type="file" /><small>AVIF, JPG, PNG o WebP. Máximo 5 MiB.</small></label>
           <div className="admin-form__wide admin-inline-actions"><SubmitButton className="button button--secondary" pendingLabel="Añadiendo…"><Plus size={15} /> Añadir ponente</SubmitButton></div>
         </form>
       </section>

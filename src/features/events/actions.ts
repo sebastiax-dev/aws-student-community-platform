@@ -8,7 +8,7 @@ import { AuthorizationError } from "@/features/auth/errors";
 import { getAdminUserId, getAuthenticatedUserId } from "@/features/auth/session";
 import { EventImageValidationError, EventQueryError } from "@/features/events/errors";
 import { executeEventQuery, requireEventQueryData } from "@/features/events/request";
-import { deleteEventImage, parseEventImage, uploadEventImage } from "@/features/events/storage";
+import { deleteEventImage, parseEventImage, uploadEventImage, uploadEventSpeakerImage } from "@/features/events/storage";
 import type { EventMutationInput } from "@/features/events/types";
 import {
   parseEventAgendaItem,
@@ -98,9 +98,9 @@ function toEventUpdate(input: EventMutationInput, imagePath: string | null): Eve
   };
 }
 
-function parseImageOrRedirect(formData: FormData, errorPath: string): File | null {
+function parseImageOrRedirect(formData: FormData, errorPath: string, fieldName: string): File | null {
   try {
-    return parseEventImage(formData);
+    return parseEventImage(formData, fieldName);
   } catch (error) {
     if (error instanceof EventImageValidationError) {
       redirect(`${errorPath}?error=invalid_image`);
@@ -161,7 +161,7 @@ export async function createEventAction(formData: FormData): Promise<never> {
     redirect(`${errorPath}?error=invalid_input`);
   }
 
-  const image = parseImageOrRedirect(formData, errorPath);
+  const image = parseImageOrRedirect(formData, errorPath, "image");
   await requireAdmin("createEvent");
   const supabase = await createSupabaseServerClient();
   const eventId = crypto.randomUUID();
@@ -204,7 +204,7 @@ export async function updateEventAction(eventId: string, formData: FormData): Pr
   if (!parsedInput.success) {
     redirect(`${errorPath}?error=invalid_input`);
   }
-  const image = parseImageOrRedirect(formData, errorPath);
+  const image = parseImageOrRedirect(formData, errorPath, "image");
 
   await requireAdmin("updateEvent");
   const supabase = await createSupabaseServerClient();
@@ -242,23 +242,35 @@ export async function updateEventAction(eventId: string, formData: FormData): Pr
   redirect(`${errorPath}?status=updated`);
 }
 
-export async function deleteDraftEventAction(eventId: string): Promise<never> {
+export async function deleteEventAction(eventId: string): Promise<never> {
   const parsedEventId = eventIdSchema.safeParse(eventId);
   if (!parsedEventId.success) {
-    throw new Error(`Invalid event identifier supplied to deleteDraftEventAction: eventId=${eventId}`);
+    throw new Error(`Invalid event identifier supplied to deleteEventAction: eventId=${eventId}`);
   }
 
-  await requireAdmin("deleteDraftEvent");
+  const adminUserId = await requireAdmin("deleteEvent");
   const supabase = await createSupabaseServerClient();
   const currentResult = await executeEventQuery("getEventBeforeDelete", () => supabase
     .from("events")
-    .select("image_path, slug")
+    .select("image_path, is_published, published_at, slug")
     .eq("id", eventId)
+    .is("deleted_at", null)
     .single());
   const currentEvent = requireEventQueryData("getEventBeforeDelete", currentResult.data);
+  const preservesPublishedHistory = currentEvent.is_published || currentEvent.published_at !== null;
 
   try {
-    await executeEventQuery("deleteDraftEvent", () => supabase.from("events").delete().eq("id", eventId));
+    if (!preservesPublishedHistory) {
+      await executeEventQuery("deleteDraftEvent", () => supabase.from("events").delete().eq("id", eventId));
+    } else {
+      await executeEventQuery("retirePublishedEvent", () => supabase
+        .from("events")
+        .update({ deleted_at: new Date().toISOString(), deleted_by: adminUserId, is_published: false })
+        .eq("id", eventId)
+        .is("deleted_at", null)
+        .select("id")
+        .single());
+    }
   } catch (error) {
     const failure = toError(error);
     if (failure instanceof EventQueryError) {
@@ -267,12 +279,13 @@ export async function deleteDraftEventAction(eventId: string): Promise<never> {
     throw failure;
   }
 
-  if (currentEvent.image_path !== null) {
+  if (!preservesPublishedHistory && currentEvent.image_path !== null) {
     await deleteEventImage(supabase, currentEvent.image_path);
   }
 
   revalidateEventPaths(currentEvent.slug);
-  redirect("/dashboard/admin/eventos?status=deleted");
+  revalidatePath("/dashboard");
+  redirect(`/dashboard/admin/eventos?status=${preservesPublishedHistory ? "published_removed" : "deleted"}`);
 }
 
 export async function registerForEventAction(eventId: string, slug: string): Promise<never> {
@@ -354,12 +367,17 @@ export async function createEventSpeakerAction(eventId: string, slug: string, fo
 
   await requireAdmin("createEventSpeaker");
   const supabase = await createSupabaseServerClient();
+  const speakerId = crypto.randomUUID();
+  const image = parseImageOrRedirect(formData, `/dashboard/admin/eventos/${eventId}/editar`, "speakerImage");
+  const imagePath = image === null ? null : await uploadEventSpeakerImage(supabase, eventId, speakerId, image);
   try {
     await executeEventQuery("createEventSpeaker", () => supabase
       .from("event_speakers")
       .insert({
         bio: parsedInput.data.bio,
         event_id: eventId,
+        id: speakerId,
+        image_path: imagePath,
         name: parsedInput.data.name,
         role_title: parsedInput.data.roleTitle,
         sort_order: parsedInput.data.sortOrder,
@@ -367,6 +385,9 @@ export async function createEventSpeakerAction(eventId: string, slug: string, fo
       .select("id")
       .single());
   } catch (error) {
+    if (imagePath !== null) {
+      await removeUploadedImageAfterFailure(imagePath, toError(error));
+    }
     redirectChildMutationFailure(error, eventId);
   }
 
@@ -380,11 +401,21 @@ export async function deleteEventSpeakerAction(eventId: string, slug: string, sp
   requireUuid(speakerId, "deleteEventSpeaker");
   await requireAdmin("deleteEventSpeaker");
   const supabase = await createSupabaseServerClient();
+  const currentResult = await executeEventQuery("getEventSpeakerBeforeDelete", () => supabase
+    .from("event_speakers")
+    .select("image_path")
+    .eq("id", speakerId)
+    .eq("event_id", eventId)
+    .single());
+  const currentSpeaker = requireEventQueryData("getEventSpeakerBeforeDelete", currentResult.data);
   await executeEventQuery("deleteEventSpeaker", () => supabase
     .from("event_speakers")
     .delete()
     .eq("id", speakerId)
     .eq("event_id", eventId));
+  if (currentSpeaker.image_path !== null) {
+    await deleteEventImage(supabase, currentSpeaker.image_path);
+  }
   revalidateEventAdministration(eventId, slug);
   redirect(`/dashboard/admin/eventos/${eventId}/editar?status=speaker_deleted`);
 }

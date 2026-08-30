@@ -10,6 +10,10 @@ type AgendaRow = Database["public"]["Tables"]["event_agenda_items"]["Row"];
 type ResourceRow = Database["public"]["Tables"]["event_resources"]["Row"];
 type SpeakerRow = Database["public"]["Tables"]["event_speakers"]["Row"];
 
+type EventSpeakerModel = Readonly<Pick<SpeakerRow, "bio" | "id" | "image_path" | "name" | "role_title" | "sort_order"> & {
+  image_url: string | null;
+}>;
+
 export type EventCardModel = Readonly<Pick<EventRow,
   | "capacity"
   | "ends_at"
@@ -32,7 +36,7 @@ export type EventCardModel = Readonly<Pick<EventRow,
 export type PublicEventDetail = Readonly<EventCardModel & Pick<EventRow, "description" | "requirements"> & {
   agenda: readonly Readonly<Pick<AgendaRow, "description" | "ends_at" | "id" | "sort_order" | "starts_at" | "title">>[];
   resources: readonly Readonly<Pick<ResourceRow, "id" | "label" | "sort_order" | "url">>[];
-  speakers: readonly Readonly<Pick<SpeakerRow, "bio" | "id" | "name" | "role_title" | "sort_order">>[];
+  speakers: readonly EventSpeakerModel[];
 }>;
 
 export type AdminEventSummary = Readonly<EventCardModel & Pick<EventRow, "is_published" | "published_at" | "updated_at">>;
@@ -42,7 +46,7 @@ export type AdminEventDetail = Readonly<AdminEventSummary & Pick<EventRow, "desc
   internal_notes: string | null;
   meeting_url: string | null;
   resources: readonly ResourceRow[];
-  speakers: readonly SpeakerRow[];
+  speakers: readonly (SpeakerRow & Readonly<{ image_url: string | null }>)[];
 }>;
 
 export type AdminEventRegistration = Readonly<{

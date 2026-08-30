@@ -118,11 +118,13 @@ export function parseEventMutationInput(formData: FormData): EventMutationParseR
       ? slugifyEventTitle(rawTitle)
       : rawSlug;
 
+  const saveAsDraft = formData.get("submissionIntent") === "draft";
+
   return eventMutationSchema.safeParse({
     capacity: formData.get("capacity"),
     description: formData.get("description"),
     endsAt: formData.get("endsAt"),
-    isPublished: formData.get("isPublished"),
+    isPublished: saveAsDraft ? null : formData.get("isPublished"),
     location: formData.get("location"),
     modality: formData.get("modality"),
     registrationClosesAt: formData.get("registrationClosesAt"),
@@ -131,7 +133,7 @@ export function parseEventMutationInput(formData: FormData): EventMutationParseR
     requirements: formData.get("requirements"),
     slug: normalizedSlug,
     startsAt: formData.get("startsAt"),
-    status: formData.get("status"),
+    status: saveAsDraft ? "PLANNED" : formData.get("status"),
     summary: formData.get("summary"),
     title: rawTitle,
   });

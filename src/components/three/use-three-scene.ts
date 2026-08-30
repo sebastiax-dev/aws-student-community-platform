@@ -17,8 +17,13 @@ function supportsWebGl(): boolean {
 export function useThreeScene(): ThreeSceneState {
   const containerRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion() === true;
-  const [hasWebGl] = useState(() => typeof window !== "undefined" && supportsWebGl());
+  const [hasWebGl, setHasWebGl] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setHasWebGl(supportsWebGl()), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;

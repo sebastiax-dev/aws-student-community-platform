@@ -51,13 +51,13 @@ async function executeStorageRequest<TResult extends StorageResult>(operation: s
   throw new Error(`Supabase event storage retry loop ended unexpectedly: operation=${operation}, maximumAttempts=${maximumAttempts}, path=${path}`);
 }
 
-export function parseEventImage(formData: FormData): File | null {
-  const image = formData.get("image");
+export function parseEventImage(formData: FormData, fieldName: string): File | null {
+  const image = formData.get(fieldName);
   if (image === null || image instanceof File && image.size === 0) {
     return null;
   }
   if (!(image instanceof File)) {
-    throw new EventImageValidationError("Event image input must be a file.");
+    throw new EventImageValidationError(`Event image input must be a file: field=${fieldName}`);
   }
   if (!(image.type in allowedImageTypes)) {
     throw new EventImageValidationError(`Event image MIME type is not allowed: type=${image.type}`);
@@ -69,21 +69,36 @@ export function parseEventImage(formData: FormData): File | null {
   return image;
 }
 
-export async function uploadEventImage(supabase: SupabaseClient<Database>, eventId: string, image: File): Promise<string> {
+async function uploadEventMedia(supabase: SupabaseClient<Database>, path: string, image: File, operation: string): Promise<string> {
   const extension = allowedImageTypes[image.type];
   if (extension === undefined) {
     throw new EventImageValidationError(`Event image extension could not be resolved: type=${image.type}`);
   }
 
-  const path = `${eventId}/${crypto.randomUUID()}.${extension}`;
   const content = await image.arrayBuffer();
-  await executeStorageRequest("uploadEventImage", path, () => supabase.storage.from("events").upload(path, content, {
+  await executeStorageRequest(operation, path, () => supabase.storage.from("events").upload(path, content, {
     cacheControl: "31536000",
     contentType: image.type,
     upsert: false,
   }));
 
   return path;
+}
+
+export async function uploadEventImage(supabase: SupabaseClient<Database>, eventId: string, image: File): Promise<string> {
+  const extension = allowedImageTypes[image.type];
+  if (extension === undefined) {
+    throw new EventImageValidationError(`Event image extension could not be resolved: type=${image.type}`);
+  }
+  return uploadEventMedia(supabase, `${eventId}/${crypto.randomUUID()}.${extension}`, image, "uploadEventImage");
+}
+
+export async function uploadEventSpeakerImage(supabase: SupabaseClient<Database>, eventId: string, speakerId: string, image: File): Promise<string> {
+  const extension = allowedImageTypes[image.type];
+  if (extension === undefined) {
+    throw new EventImageValidationError(`Speaker image extension could not be resolved: type=${image.type}`);
+  }
+  return uploadEventMedia(supabase, `${eventId}/speakers/${speakerId}/${crypto.randomUUID()}.${extension}`, image, "uploadEventSpeakerImage");
 }
 
 export async function deleteEventImage(supabase: SupabaseClient<Database>, imagePath: string): Promise<void> {

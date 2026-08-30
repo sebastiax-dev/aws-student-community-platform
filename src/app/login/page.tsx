@@ -25,6 +25,7 @@ export default async function LoginPage({ searchParams }: LoginPageProperties): 
         <input name="next" type="hidden" value={parameters.next ?? "/dashboard"} />
         <label>Correo electrónico<input autoComplete="email" name="email" required type="email" /></label>
         <label>Contraseña<input autoComplete="current-password" minLength={10} name="password" required type="password" /></label>
+        <label className="auth-form__checkbox"><input defaultChecked name="rememberSession" type="checkbox" /> Mantener mi sesión iniciada en este dispositivo</label>
         <Link className="auth-form__help" href="/recuperar-contrasena">Olvidé mi contraseña</Link>
         <button className="button button--primary" type="submit">Ingresar</button>
       </form>

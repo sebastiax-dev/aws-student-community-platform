@@ -6,7 +6,7 @@ import { signOutAction } from "@/features/auth/actions";
 import type { AppRole } from "@/features/auth/session";
 
 type DashboardNavigationProperties = Readonly<{
-  activePage: "events" | "overview" | "profile" | "progress";
+  activePage: "events" | "overview" | "privacy" | "profile" | "progress";
   role: AppRole;
 }>;
 

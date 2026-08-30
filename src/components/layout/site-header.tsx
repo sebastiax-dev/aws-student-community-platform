@@ -1,7 +1,11 @@
 import { Boxes, CalendarDays, Grid2X2, House, Moon, UsersRound } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
-export type SitePage = "community" | "dashboard-preview" | "events" | "home";
+import { getSiteBranding } from "@/features/admin/queries";
+import { getAuthenticatedUserId } from "@/features/auth/session";
+
+export type SitePage = "community" | "dashboard-preview" | "events" | "home" | "privacy" | null;
 
 type SiteHeaderProperties = Readonly<{
   activePage: SitePage;
@@ -10,7 +14,7 @@ type SiteHeaderProperties = Readonly<{
 type NavigationItem = Readonly<{
   href: string;
   label: string;
-  page: SitePage;
+  page: Exclude<SitePage, null>;
 }>;
 
 const navigationItems: readonly NavigationItem[] = [
@@ -20,22 +24,25 @@ const navigationItems: readonly NavigationItem[] = [
   { href: "/dashboard", label: "Dashboard", page: "dashboard-preview" },
 ];
 
-export function SiteHeader({ activePage }: SiteHeaderProperties): React.ReactNode {
+export async function SiteHeader({ activePage }: SiteHeaderProperties): Promise<React.ReactNode> {
+  const [authenticatedUserId, branding] = await Promise.all([getAuthenticatedUserId(), getSiteBranding()]);
+
   return (
     <>
       <header className="site-header">
         <div className="content-wrap site-header__inner">
           <Link aria-label="Ir al inicio" className="brand" href="/">
-            <span aria-hidden="true" className="brand__mark"><Boxes size={24} /></span>
-            <span className="brand__name"><strong>AWS</strong><span>STUDENT COMMUNITY<br />PUCE</span></span>
+            <span aria-hidden="true" className="brand__mark">{branding.logoImageUrl === null ? <Boxes size={24} /> : <Image alt="" height={32} src={branding.logoImageUrl} unoptimized width={32} />}</span>
+            <span className="brand__name">{branding.brandName}</span>
           </Link>
           <nav aria-label="Navegación principal" className="header-nav">
             {navigationItems.map((item) => <Link data-active={item.page === activePage} href={item.href} key={item.page}>{item.label}</Link>)}
           </nav>
           <div className="header-actions">
             <span aria-hidden="true" className="button button--secondary"><Moon size={16} /></span>
-            <Link className="button button--secondary" href="/login">Iniciar sesión</Link>
-            <Link className="button button--primary" href="/registro">Únete ahora</Link>
+            {authenticatedUserId === null
+              ? <><Link className="button button--secondary" href="/login">Iniciar sesión</Link><Link className="button button--primary" href="/registro">Únete ahora</Link></>
+              : <Link className="button button--primary" href="/dashboard">Mi dashboard</Link>}
           </div>
         </div>
       </header>

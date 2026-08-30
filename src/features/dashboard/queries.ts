@@ -113,7 +113,8 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     : requireEventQueryData("listOwnRegistrationEvents", (await executeEventQuery("listOwnRegistrationEvents", () => supabase
       .from("events")
       .select(dashboardEventColumns)
-      .in("id", eventIds))).data).map(toDashboardEvent);
+      .in("id", eventIds)
+      .is("deleted_at", null))).data).map(toDashboardEvent);
   const eventsById = new Map(events.map((event) => [event.id, event]));
   const eventTitles = new Map(events.map((event) => [event.id, event.title]));
   const dashboardRegistrations = sortDashboardRegistrations(registrations.map((registration) => ({
