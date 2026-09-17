@@ -7,7 +7,7 @@ import { AuthorizationError } from "@/features/auth/errors";
 import { getAdminUserId } from "@/features/auth/session";
 import { AdminMediaValidationError, deleteSiteImage, parseOptionalSiteImage, uploadSiteImage } from "@/features/admin/media";
 import { executeAdminQuery } from "@/features/admin/request";
-import { attendanceSchema, brandingContentSchema, certificationTotalSchema, communityContentSchema, contactContentSchema, footerContentSchema, homeContentSchema, identifierSchema, pointAdjustmentSchema, roleSchema, socialLinkSchema, teamMemberSchema } from "@/features/admin/validation";
+import { attendanceSchema, brandingContentSchema, certificationTotalSchema, communityContentSchema, contactContentSchema, footerContentSchema, homeContentSchema, identifierSchema, pointAdjustmentSchema, recommendationsContentSchema, roleSchema, socialLinkSchema, teamMemberSchema } from "@/features/admin/validation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database.generated";
 
@@ -27,7 +27,7 @@ function requireIdentifier(value: string, operation: string): string {
   return result.data;
 }
 
-async function updateSetting(key: "branding" | "community" | "contact" | "footer" | "home", value: Json, operation: string): Promise<void> {
+async function updateSetting(key: "branding" | "community" | "contact" | "footer" | "home" | "recommendations", value: Json, operation: string): Promise<void> {
   const adminUserId = await requireAdmin(operation);
   const supabase = await createSupabaseServerClient();
   await executeAdminQuery(operation, () => supabase
@@ -129,6 +129,16 @@ export async function updateFooterContentAction(formData: FormData): Promise<nev
   await updateSetting("footer", result.data, "updateFooterContent");
   revalidatePath("/", "layout");
   redirect("/dashboard/admin/contacto?status=institutional_updated");
+}
+
+export async function updateRecommendationsContentAction(formData: FormData): Promise<never> {
+  const result = recommendationsContentSchema.safeParse({ formUrl: formData.get("recommendationsFormUrl") });
+  if (!result.success) {
+    redirect("/dashboard/admin/contenido?error=invalid_recommendations");
+  }
+  await updateSetting("recommendations", result.data, "updateRecommendationsContent");
+  revalidatePath("/");
+  redirect("/dashboard/admin/contenido?status=recommendations_updated");
 }
 
 export async function updateBrandingAction(formData: FormData): Promise<never> {

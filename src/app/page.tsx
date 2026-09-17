@@ -5,21 +5,24 @@ import { EventCard } from "@/components/events/event-card";
 import { CloudScene } from "@/components/home/cloud-scene";
 import { CommunityMetrics } from "@/components/home/community-metrics";
 import { CommunityMembers } from "@/components/home/community-members";
+import { RecommendationsCta } from "@/components/home/recommendations-cta";
 import { SiteHeader } from "@/components/layout/site-header";
 import { MotionEventCard, Reveal } from "@/components/motion/reveal";
-import { getSiteContent, listPublicTeamMembers } from "@/features/admin/queries";
+import { getRecommendationsContent, getSiteContent, listPublicTeamMembers } from "@/features/admin/queries";
 import { listHomeEvents } from "@/features/events/queries";
+import { isRegistrationOpen } from "@/features/events/registration-window";
 import { eventModalityLabels } from "@/features/events/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage(): Promise<React.ReactNode> {
-  const [events, content, members] = await Promise.all([listHomeEvents(), getSiteContent(), listPublicTeamMembers()]);
+  const [events, content, members, recommendations] = await Promise.all([listHomeEvents(), getSiteContent(), listPublicTeamMembers(), getRecommendationsContent()]);
   const featuredEvent = events[0] ?? null;
   const featuredDate = featuredEvent === null ? null : new Date(featuredEvent.starts_at);
   const featuredDay = featuredDate === null ? "—" : new Intl.DateTimeFormat("es-EC", { day: "2-digit", timeZone: "America/Guayaquil" }).format(featuredDate);
   const featuredMonth = featuredDate === null ? "PRONTO" : new Intl.DateTimeFormat("es-EC", { month: "short", timeZone: "America/Guayaquil" }).format(featuredDate).replace(".", "").toUpperCase();
   const featuredTime = featuredDate === null ? null : new Intl.DateTimeFormat("es-EC", { hour: "2-digit", minute: "2-digit", timeZone: "America/Guayaquil" }).format(featuredDate);
+  const featuredRegistrationOpen = featuredEvent === null ? false : isRegistrationOpen(featuredEvent, new Date());
 
   return (
     <div className="page-shell">
@@ -36,7 +39,7 @@ export default async function HomePage(): Promise<React.ReactNode> {
             </div>
             <article className="feature-event surface">
               <div className="feature-event__main"><span className="date-block"><strong>{featuredDay}</strong><span>{featuredMonth}</span></span><div><p className="eyebrow"><CalendarDays size={12} /> PRÓXIMO EVENTO</p><h2>{featuredEvent?.title ?? "Nueva programación en preparación"}</h2><p>{featuredEvent === null ? "El equipo publicará aquí el siguiente encuentro de la comunidad." : `${featuredTime} · ${eventModalityLabels[featuredEvent.modality]} · ${featuredEvent.location}`}</p></div></div>
-              <Link className="button button--primary" href={featuredEvent === null ? "/eventos" : `/eventos/${featuredEvent.slug}`}>{featuredEvent?.status === "ACTIVE" ? "Inscribirme" : "Ver eventos"} <ArrowRight size={16} /></Link>
+              <Link className="button button--primary" href={featuredEvent === null ? "/eventos" : `/eventos/${featuredEvent.slug}`}>{featuredRegistrationOpen ? "Inscribirme" : "Ver eventos"} <ArrowRight size={16} /></Link>
             </article>
           </Reveal>
           <CloudScene />
@@ -48,6 +51,7 @@ export default async function HomePage(): Promise<React.ReactNode> {
             : <div className="event-grid">{events.map((event, index) => <MotionEventCard delay={index * 0.08} key={event.id}><EventCard event={event} featured={index === 0} /></MotionEventCard>)}</div>}
         </section>
         <section id="comunidad"><Reveal className="community-intro" delay={0.08}><p className="eyebrow">COMUNIDAD</p><h2>{content.community.title}</h2><p>{content.community.description}</p></Reveal><CommunityMetrics content={content.community} /><CommunityMembers members={members} /></section>
+        <RecommendationsCta formUrl={recommendations.formUrl} />
       </main>
     </div>
   );

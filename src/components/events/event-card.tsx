@@ -2,8 +2,9 @@ import { ArrowRight, Bot, CalendarDays, Cloud, MapPin, Workflow } from "lucide-r
 import Image from "next/image";
 import Link from "next/link";
 
+import { getEventDisplayStatusLabel, isRegistrationOpen } from "@/features/events/registration-window";
 import type { EventCardModel, EventModality } from "@/features/events/types";
-import { eventModalityLabels, eventStatusLabels } from "@/features/events/types";
+import { eventModalityLabels } from "@/features/events/types";
 
 type EventTone = "blue" | "teal" | "violet";
 
@@ -27,7 +28,10 @@ const toneIcons: Readonly<Record<EventTone, typeof Cloud>> = {
 export function EventCard({ event, featured }: EventCardProperties): React.ReactNode {
   const tone = modalityTones[event.modality];
   const EventIcon = toneIcons[tone];
-  const actionLabel = event.status === "ACTIVE" ? "Ver detalles e inscribirme" : event.status === "FINISHED" ? "Ver resumen del evento" : "Más información";
+  const currentTime = new Date();
+  const registrationOpen = isRegistrationOpen(event, currentTime);
+  const actionLabel = registrationOpen ? "Ver detalles e inscribirme" : event.status === "FINISHED" ? "Ver resumen del evento" : "Más información";
+  const displayStatusLabel = getEventDisplayStatusLabel(event, currentTime);
   const formattedDate = new Intl.DateTimeFormat("es-EC", {
     dateStyle: "medium",
     timeZone: "America/Guayaquil",
@@ -39,7 +43,7 @@ export function EventCard({ event, featured }: EventCardProperties): React.React
         {event.image_url === null
           ? <EventIcon aria-hidden="true" />
           : <Image alt={`Imagen de ${event.title}`} fill sizes="(min-width: 1100px) 33vw, (min-width: 700px) 50vw, 100vw" src={event.image_url} />}
-        <span className={`status-pill status-pill--${event.status.toLowerCase()}`}>{eventStatusLabels[event.status]}</span>
+        <span className={`status-pill status-pill--${event.status.toLowerCase()}`}>{displayStatusLabel}</span>
       </div>
       <div className="event-card__content">
         <div className="event-card__metadata"><span><CalendarDays aria-hidden="true" size={13} /> {formattedDate}</span><span className="status-pill status-pill--open">{eventModalityLabels[event.modality]}</span></div>

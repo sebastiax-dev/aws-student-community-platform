@@ -180,6 +180,36 @@ function useServiceTexture(node: ServiceNode): CanvasTexture {
   return texture;
 }
 
+function LightweightCloudScene(): React.ReactNode {
+  return <svg aria-hidden="true" className="three-fallback" preserveAspectRatio="xMidYMid meet" viewBox="0 0 800 500">
+    <defs>
+      <linearGradient id="three-fallback-cloud" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stopColor="#a6ecff" stopOpacity=".82" /><stop offset=".45" stopColor="#198df4" stopOpacity=".44" /><stop offset="1" stopColor="#062f89" stopOpacity=".68" /></linearGradient>
+      <radialGradient id="three-fallback-core"><stop offset="0" stopColor="#8ee9ff" /><stop offset=".42" stopColor="#168bff" stopOpacity=".82" /><stop offset="1" stopColor="#031c54" stopOpacity=".1" /></radialGradient>
+      <filter id="three-fallback-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur result="blur" stdDeviation="8" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+    </defs>
+    <g className="three-fallback__orbit" fill="none" stroke="#2bb7ff" strokeOpacity=".42">
+      <ellipse cx="400" cy="250" rx="262" ry="102" transform="rotate(-13 400 250)" />
+      <ellipse cx="400" cy="250" rx="220" ry="78" transform="rotate(34 400 250)" />
+      <ellipse cx="400" cy="250" rx="190" ry="62" transform="rotate(72 400 250)" />
+    </g>
+    <g filter="url(#three-fallback-glow)">
+      <path d="M208 273c0-51 41-92 92-92 10 0 20 2 29 5 21-45 66-76 118-76 57 0 106 37 123 89 8-3 17-5 27-5 48 0 87 39 87 87 0 49-39 89-87 89H296c-49 0-88-39-88-87Z" fill="url(#three-fallback-cloud)" stroke="#58d5ff" strokeWidth="3" />
+      <path d="M218 276c41-24 73-37 108-37 28 0 53 7 77 20 36-32 74-44 114-36 30 6 54 20 74 43 28-13 57-13 86 2" fill="none" stroke="#a9efff" strokeDasharray="9 9" strokeOpacity=".72" strokeWidth="2" />
+      <path d="M245 314c43-25 84-35 124-29 33 5 61 19 86 41 38-25 76-31 113-18 28 10 50 28 67 54" fill="none" stroke="#39b8ff" strokeDasharray="5 8" strokeOpacity=".74" strokeWidth="2" />
+      <ellipse cx="400" cy="257" fill="url(#three-fallback-core)" rx="144" ry="72" />
+      <text className="three-fallback__aws" fill="#e1f8ff" fontFamily="Arial, sans-serif" fontSize="84" fontWeight="800" textAnchor="middle" x="400" y="276">aws</text>
+      <path d="M344 294c33 27 87 28 120 1" fill="none" stroke="#8deaff" strokeLinecap="round" strokeWidth="8" />
+      <path d="m454 289 19 5-13 15" fill="none" stroke="#8deaff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="6" />
+    </g>
+    <g className="three-fallback__satellites" filter="url(#three-fallback-glow)">
+      <circle cx="185" cy="372" fill="#1065c8" r="43" stroke="#62d8ff" strokeWidth="2" /><circle cx="615" cy="371" fill="#1065c8" r="43" stroke="#62d8ff" strokeWidth="2" /><circle cx="618" cy="139" fill="#1065c8" r="39" stroke="#62d8ff" strokeWidth="2" />
+      <path d="M167 374h36m-18-18v36M598 371h36m-18-18v36M603 139h30m-15-15v30" stroke="#d4f7ff" strokeLinecap="round" strokeWidth="5" />
+      <text fill="#c9f1ff" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" textAnchor="middle" x="185" y="430">Comunidad</text><text fill="#c9f1ff" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" textAnchor="middle" x="615" y="429">Eventos</text><text fill="#c9f1ff" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="700" textAnchor="middle" x="618" y="191">Dashboard</text>
+      <path d="M353 395h94l-12 32h-70Z" fill="#0755b8" stroke="#59caff" strokeWidth="2" /><ellipse cx="400" cy="395" fill="#8beaff" rx="47" ry="12" /><ellipse cx="400" cy="427" fill="#0a79e8" rx="35" ry="8" />
+    </g>
+  </svg>;
+}
+
 function CameraParallax(): React.ReactNode {
   useFrame((state) => {
     state.camera.position.x += (state.pointer.x * 0.48 - state.camera.position.x) * 0.035;
@@ -343,13 +373,75 @@ function CloudAssembly({ canActivateCloud, onExplorationChange, orbitRotation }:
 export function HomeCloudCanvas({ onExplorationChange }: HomeCloudCanvasProperties): React.ReactNode {
   const { containerRef, enabled, isVisible } = useThreeScene();
   const [orbitRotation, setOrbitRotation] = useState<OrbitRotation>(initialOrbitRotation);
+  const [inertiaKey, setInertiaKey] = useState(0);
   const pointerPositionRef = useRef<PointerPosition | null>(null);
   const didDragRef = useRef(false);
+  const queuedRotationRef = useRef<OrbitRotation>({ x: 0, y: 0 });
+  const rotationVelocityRef = useRef<OrbitRotation>({ x: 0, y: 0 });
+  const rotationFrameRef = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (rotationFrameRef.current !== null) {
+      window.cancelAnimationFrame(rotationFrameRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (inertiaKey === 0) {
+      return undefined;
+    }
+
+    let frame: number | null = null;
+    const animateInertia = (): void => {
+      const velocity = rotationVelocityRef.current;
+      if (Math.abs(velocity.x) + Math.abs(velocity.y) < 0.00035) {
+        rotationVelocityRef.current = { x: 0, y: 0 };
+        frame = null;
+        return;
+      }
+
+      setOrbitRotation((currentRotation) => ({
+        x: clamp(currentRotation.x + velocity.x, -0.55, 0.55),
+        y: currentRotation.y + velocity.y,
+      }));
+      rotationVelocityRef.current = { x: velocity.x * 0.91, y: velocity.y * 0.91 };
+      frame = window.requestAnimationFrame(animateInertia);
+    };
+
+    frame = window.requestAnimationFrame(animateInertia);
+    return () => {
+      if (frame !== null) {
+        window.cancelAnimationFrame(frame);
+      }
+    };
+  }, [inertiaKey]);
+
+  const flushQueuedRotation = (): void => {
+    rotationFrameRef.current = null;
+    const queuedRotation = queuedRotationRef.current;
+    queuedRotationRef.current = { x: 0, y: 0 };
+    if (queuedRotation.x === 0 && queuedRotation.y === 0) {
+      return;
+    }
+    setOrbitRotation((currentRotation) => ({
+      x: clamp(currentRotation.x + queuedRotation.x, -0.55, 0.55),
+      y: currentRotation.y + queuedRotation.y,
+    }));
+  };
+
+  const scheduleQueuedRotation = (): void => {
+    if (rotationFrameRef.current === null) {
+      rotationFrameRef.current = window.requestAnimationFrame(flushQueuedRotation);
+    }
+  };
 
   const startRotation = (event: React.PointerEvent<HTMLDivElement>): void => {
     pointerPositionRef.current = { x: event.clientX, y: event.clientY };
     didDragRef.current = false;
+    rotationVelocityRef.current = { x: 0, y: 0 };
+    setInertiaKey((key) => key + 1);
     event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
   };
 
   const updateRotation = (event: React.PointerEvent<HTMLDivElement>): void => {
@@ -363,26 +455,34 @@ export function HomeCloudCanvas({ onExplorationChange }: HomeCloudCanvasProperti
     if (Math.abs(horizontalDelta) + Math.abs(verticalDelta) > 1) {
       didDragRef.current = true;
     }
-    setOrbitRotation((currentRotation) => ({
-      x: clamp(currentRotation.x + verticalDelta * 0.008, -0.55, 0.55),
-      y: currentRotation.y + horizontalDelta * 0.012,
-    }));
+    const rotationDelta = { x: verticalDelta * 0.008, y: horizontalDelta * 0.012 };
+    queuedRotationRef.current = {
+      x: clamp(queuedRotationRef.current.x + rotationDelta.x, -0.35, 0.35),
+      y: clamp(queuedRotationRef.current.y + rotationDelta.y, -0.35, 0.35),
+    };
+    rotationVelocityRef.current = { x: clamp(rotationDelta.x, -0.08, 0.08), y: clamp(rotationDelta.y, -0.08, 0.08) };
     pointerPositionRef.current = { x: event.clientX, y: event.clientY };
+    scheduleQueuedRotation();
+    event.preventDefault();
   };
 
   const finishRotation = (): void => {
+    if (pointerPositionRef.current === null) {
+      return;
+    }
     pointerPositionRef.current = null;
+    setInertiaKey((key) => key + 1);
   };
 
   const canActivateCloud = (): boolean => !didDragRef.current;
 
-  return <div aria-label="Escena 3D interactiva de infraestructura cloud. Arrastra para rotar 360 grados." className="three-canvas three-canvas--home" onPointerCancel={finishRotation} onPointerDownCapture={startRotation} onPointerLeave={finishRotation} onPointerMoveCapture={updateRotation} onPointerUp={finishRotation} ref={containerRef} role="img">
+  return <div aria-label="Escena 3D interactiva de infraestructura cloud. Arrastra para rotar 360 grados." className="three-canvas three-canvas--home" onLostPointerCapture={finishRotation} onPointerCancel={finishRotation} onPointerDownCapture={startRotation} onPointerMoveCapture={updateRotation} onPointerUpCapture={finishRotation} ref={containerRef} role="img">
     {enabled ? <Canvas camera={{ fov: 36, position: [0, 0.15, 8.2] }} dpr={[1, 1.5]} frameloop={isVisible ? "always" : "never"} gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}>
       <ambientLight intensity={0.45} />
       <directionalLight color="#78cfff" intensity={1.5} position={[2.5, 4, 4]} />
       <pointLight color="#096ae8" distance={8} intensity={4.6} position={[-3, 1.5, 1.4]} />
       <CameraParallax />
       <CloudAssembly canActivateCloud={canActivateCloud} onExplorationChange={onExplorationChange} orbitRotation={orbitRotation} />
-    </Canvas> : null}
+    </Canvas> : <LightweightCloudScene />}
   </div>;
 }

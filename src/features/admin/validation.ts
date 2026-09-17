@@ -47,6 +47,10 @@ export const contactContentSchema = z.object({
   whatsapp: optionalContactSchema,
 });
 
+export const recommendationsContentSchema = z.object({
+  formUrl: z.union([z.literal(""), z.url().refine((url) => url.startsWith("https://"), "La URL debe usar HTTPS.")]),
+});
+
 export const socialLinkSchema = z.object({
   active: z.boolean(),
   icon: z.string().trim().min(2).max(40),

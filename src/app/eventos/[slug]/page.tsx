@@ -8,8 +8,9 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import { getAuthenticatedUserId } from "@/features/auth/session";
 import { registerForEventAction } from "@/features/events/actions";
 import { getOwnEventRegistrationStatus, getPublishedEventBySlug } from "@/features/events/queries";
+import { getEventDisplayStatusLabel, getRegistrationAvailability, isRegistrationOpen } from "@/features/events/registration-window";
 import type { PublicEventDetail, RegistrationStatus } from "@/features/events/types";
-import { eventModalityLabels, eventStatusLabels } from "@/features/events/types";
+import { eventModalityLabels } from "@/features/events/types";
 
 export const dynamic = "force-dynamic";
 
@@ -34,19 +35,6 @@ const registrationStatusLabels: Readonly<Record<RegistrationStatus, string>> = {
   NO_SHOW: "Ausencia registrada",
 };
 
-function isRegistrationOpen(event: PublicEventDetail, now: Date): boolean {
-  if (event.status !== "ACTIVE" || event.registration_url === null) {
-    return false;
-  }
-  if (event.registration_opens_at !== null && now < new Date(event.registration_opens_at)) {
-    return false;
-  }
-  if (event.registration_closes_at !== null && now > new Date(event.registration_closes_at)) {
-    return false;
-  }
-  return true;
-}
-
 export default async function EventDetailPage({ params, searchParams }: EventDetailPageProperties): Promise<React.ReactNode> {
   const { slug } = await params;
   const event = await getPublishedEventBySlug(slug);
@@ -58,7 +46,10 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
   const registrationStatus = userId === null ? null : await getOwnEventRegistrationStatus(event.id, userId);
   const parameters = await searchParams;
   const registrationMessage = parameters.error === undefined ? null : registrationMessages[parameters.error] ?? null;
-  const registrationOpen = isRegistrationOpen(event, new Date());
+  const currentTime = new Date();
+  const registrationAvailability = getRegistrationAvailability(event, currentTime);
+  const registrationOpen = isRegistrationOpen(event, currentTime);
+  const displayStatusLabel = getEventDisplayStatusLabel(event, currentTime);
   const publicRegistrationUrl = registrationOpen && event.registration_url !== null ? event.registration_url : null;
   const registerAction = registerForEventAction.bind(null, event.id, event.slug);
   const startsAt = new Date(event.starts_at);
@@ -75,7 +66,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
             {event.image_url === null ? <Presentation aria-hidden="true" size={62} /> : <Image alt={`Imagen de ${event.title}`} fill priority sizes="(min-width: 900px) 45vw, 100vw" src={event.image_url} />}
           </div>
           <div className="event-detail__intro">
-            <span className={`status-pill status-pill--${event.status.toLowerCase()}`}>{eventStatusLabels[event.status]}</span>
+            <span className={`status-pill status-pill--${event.status.toLowerCase()}`}>{displayStatusLabel}</span>
             <h1>{event.title}</h1>
             <p>{event.summary}</p>
             <div className="event-detail__facts">
@@ -87,7 +78,7 @@ export default async function EventDetailPage({ params, searchParams }: EventDet
             {registrationMessage === null ? null : <div aria-live="polite" className="auth-message">{registrationMessage}</div>}
             {registrationStatus === null ? null : <p className="event-detail__registration-state">Estado personal: <strong>{registrationStatusLabels[registrationStatus]}</strong></p>}
             {publicRegistrationUrl === null
-              ? <p className="event-detail__registration-state">Las inscripciones no están disponibles en este momento.</p>
+              ? <p className="event-detail__registration-state">{registrationAvailability === "CLOSED" ? "Las inscripciones ya cerraron." : registrationAvailability === "UPCOMING" ? "Las inscripciones se abrirán próximamente." : "Las inscripciones no están disponibles en este momento."}</p>
               : userId === null
                 ? <div className="event-detail__actions"><Link className="button button--primary" href={`/login?next=${encodeURIComponent(`/eventos/${event.slug}`)}`}>Ingresar para seguimiento</Link><a className="button button--secondary" href={publicRegistrationUrl} rel="noreferrer" target="_blank">Continuar sin seguimiento <ExternalLink size={15} /></a><p>Sin una cuenta podrás completar el formulario externo, pero la plataforma no podrá mostrar tu progreso.</p></div>
                 : <form action={registerAction}><SubmitButton className="button button--primary" pendingLabel="Preparando inscripción…">{registrationStatus === null || registrationStatus === "CANCELLED" ? "Inscribirme" : "Abrir formulario de inscripción"} <ExternalLink size={15} /></SubmitButton></form>}

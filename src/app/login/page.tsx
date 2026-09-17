@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AuthCard } from "@/components/auth/auth-card";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { PasswordField } from "@/components/auth/password-field";
 import { signInAction } from "@/features/auth/actions";
 import { getAuthMessage } from "@/features/auth/messages";
 import { getAuthenticatedUserId } from "@/features/auth/session";
@@ -24,11 +26,12 @@ export default async function LoginPage({ searchParams }: LoginPageProperties): 
       <form action={signInAction} className="auth-form">
         <input name="next" type="hidden" value={parameters.next ?? "/dashboard"} />
         <label>Correo electrónico<input autoComplete="email" name="email" required type="email" /></label>
-        <label>Contraseña<input autoComplete="current-password" minLength={10} name="password" required type="password" /></label>
+        <label>Contraseña<PasswordField autoComplete="current-password" minLength={10} name="password" /></label>
         <label className="auth-form__checkbox"><input defaultChecked name="rememberSession" type="checkbox" /> Mantener mi sesión iniciada en este dispositivo</label>
         <Link className="auth-form__help" href="/recuperar-contrasena">Olvidé mi contraseña</Link>
         <button className="button button--primary" type="submit">Ingresar</button>
       </form>
+      <GoogleSignInButton nextPath={parameters.next ?? "/dashboard"} />
     </AuthCard>
   );
 }
