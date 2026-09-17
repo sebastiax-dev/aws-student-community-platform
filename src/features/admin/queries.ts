@@ -1,7 +1,7 @@
 import { executeAdminQuery, requireAdminQueryData } from "@/features/admin/request";
 import { getPublicSiteImageUrl } from "@/features/admin/media";
-import type { AdminAttendanceRow, AdminUserSummary, BrandingContent, SiteContent, SocialLink, TeamMember } from "@/features/admin/types";
-import { brandingContentSchema, communityContentSchema, contactContentSchema, footerContentSchema, homeContentSchema } from "@/features/admin/validation";
+import type { AdminAttendanceRow, AdminUserSummary, BrandingContent, RecommendationsContent, SiteContent, SocialLink, TeamMember } from "@/features/admin/types";
+import { brandingContentSchema, communityContentSchema, contactContentSchema, footerContentSchema, homeContentSchema, recommendationsContentSchema } from "@/features/admin/validation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database.generated";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -68,6 +68,20 @@ export async function getSiteBranding(): Promise<BrandingContent> {
     .single());
   const setting = requireAdminQueryData("getSiteBranding", result.data);
   return parseBrandingContent(setting.value, supabase);
+}
+
+export async function getRecommendationsContent(): Promise<RecommendationsContent> {
+  const supabase = await createSupabaseServerClient();
+  const result = await executeAdminQuery("getRecommendationsContent", () => supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "recommendations")
+    .single());
+  if (result.data === null) {
+    throw new Error("Recommendations configuration is missing from site_settings.");
+  }
+  const parsedRecommendations = recommendationsContentSchema.parse(result.data.value);
+  return { formUrl: parsedRecommendations.formUrl };
 }
 
 function toSocialLink(row: Database["public"]["Tables"]["social_links"]["Row"], supabase: SupabaseClient<Database>): SocialLink {

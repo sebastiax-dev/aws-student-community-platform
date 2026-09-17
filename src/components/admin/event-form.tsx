@@ -26,8 +26,8 @@ export function EventForm({ action, event, submitLabel }: EventFormProperties): 
         <label>Fin<input defaultValue={formatEcuadorDateTimeInput(event?.ends_at ?? null)} name="endsAt" type="datetime-local" /></label>
         <label>Ubicación<input defaultValue={event?.location ?? ""} maxLength={160} minLength={2} name="location" required type="text" /></label>
         <label>Capacidad<input defaultValue={event?.capacity ?? ""} max={10000} min={1} name="capacity" type="number" /></label>
-        <label>Apertura de inscripción<input defaultValue={formatEcuadorDateTimeInput(event?.registration_opens_at ?? null)} name="registrationOpensAt" type="datetime-local" /></label>
-        <label>Cierre de inscripción<input defaultValue={formatEcuadorDateTimeInput(event?.registration_closes_at ?? null)} name="registrationClosesAt" type="datetime-local" /></label>
+        <label>Apertura de inscripción<input defaultValue={formatEcuadorDateTimeInput(event?.registration_opens_at ?? null)} name="registrationOpensAt" type="datetime-local" /><small>Con URL de formulario, se abrirá automáticamente a esta hora.</small></label>
+        <label>Cierre de inscripción<input defaultValue={formatEcuadorDateTimeInput(event?.registration_closes_at ?? null)} name="registrationClosesAt" type="datetime-local" /><small>Al llegar esta hora, la web mostrará “Inscripciones cerradas”.</small></label>
         <label className="admin-form__wide">URL de Google Forms<input defaultValue={event?.registration_url ?? ""} maxLength={2048} name="registrationUrl" placeholder="https://..." type="url" /></label>
         <label>Estado<select defaultValue={event?.status ?? "PLANNED"} name="status">{Object.entries(eventStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <label className="admin-form__checkbox"><input defaultChecked={event?.is_published ?? false} name="isPublished" type="checkbox" /> Publicado en el sitio</label>

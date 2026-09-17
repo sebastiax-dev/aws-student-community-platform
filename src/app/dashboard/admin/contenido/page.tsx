@@ -1,9 +1,9 @@
-import { Building2, Home, ImageUp, Plus, Save, Trash2, UserRound } from "lucide-react";
+import { Building2, Home, ImageUp, MessageSquareText, Plus, Save, Trash2, UserRound } from "lucide-react";
 import Image from "next/image";
 
 import { SubmitButton } from "@/components/forms/submit-button";
-import { createTeamMemberAction, deleteTeamMemberAction, updateBrandingAction, updateHomeContentAction, updateInstitutionalContentAction, updateTeamMemberAction } from "@/features/admin/actions";
-import { getSiteContent, listAdminTeamMembers } from "@/features/admin/queries";
+import { createTeamMemberAction, deleteTeamMemberAction, updateBrandingAction, updateHomeContentAction, updateInstitutionalContentAction, updateRecommendationsContentAction, updateTeamMemberAction } from "@/features/admin/actions";
+import { getRecommendationsContent, getSiteContent, listAdminTeamMembers } from "@/features/admin/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -15,13 +15,14 @@ const successMessages: Readonly<Record<string, string>> = {
   branding_updated: "El logotipo público fue actualizado.",
   home_updated: "El contenido principal de la página fue actualizado.",
   institutional_updated: "La información institucional y el footer fueron actualizados.",
+  recommendations_updated: "El enlace de recomendaciones fue actualizado.",
   team_member_created: "El miembro de comunidad fue creado.",
   team_member_deleted: "El miembro de comunidad fue eliminado.",
   team_member_updated: "El miembro de comunidad fue actualizado.",
 };
 
 export default async function AdminContentPage({ searchParams }: AdminContentPageProperties): Promise<React.ReactNode> {
-  const [content, teamMembers, parameters] = await Promise.all([getSiteContent(), listAdminTeamMembers(), searchParams]);
+  const [content, teamMembers, recommendations, parameters] = await Promise.all([getSiteContent(), listAdminTeamMembers(), getRecommendationsContent(), searchParams]);
   const successMessage = parameters.status === undefined ? null : successMessages[parameters.status] ?? null;
   return (
     <section className="admin-section">
@@ -51,6 +52,10 @@ export default async function AdminContentPage({ searchParams }: AdminContentPag
             <label>CTA secundario<input defaultValue={content.home.secondaryCtaLabel} maxLength={60} minLength={2} name="secondaryCtaLabel" required /></label>
             <label>Ruta CTA secundario<input defaultValue={content.home.secondaryCtaHref} maxLength={240} name="secondaryCtaHref" required /></label>
           </div>
+        </form>
+        <form action={updateRecommendationsContentAction} className="admin-form surface">
+          <div className="admin-form__heading"><div><p className="eyebrow"><MessageSquareText size={14} /> RECOMENDACIONES</p><h2>Formulario de recomendaciones</h2><p>Publica un enlace para que la comunidad comparta ideas y comentarios sobre la web.</p></div><SubmitButton className="button button--primary" pendingLabel="Guardando…"><Save size={15} /> Guardar enlace</SubmitButton></div>
+          <div className="admin-form__grid"><label className="admin-form__wide">URL segura del formulario<input defaultValue={recommendations.formUrl} name="recommendationsFormUrl" placeholder="https://forms.google.com/..." type="url" /><small>Usa una URL HTTPS. Déjala vacía para ocultar la sección pública.</small></label></div>
         </form>
         <form action={updateInstitutionalContentAction} className="admin-form surface">
           <div className="admin-form__heading"><div><p className="eyebrow"><Building2 size={14} /> INSTITUCIONAL</p><h2>Comunidad y Footer</h2></div><SubmitButton className="button button--primary" pendingLabel="Guardando…"><Save size={15} /> Guardar información</SubmitButton></div>

@@ -50,6 +50,10 @@ export type ContactContent = Readonly<{
   whatsapp: string;
 }>;
 
+export type RecommendationsContent = Readonly<{
+  formUrl: string;
+}>;
+
 export type SiteContent = Readonly<{
   branding: BrandingContent;
   community: CommunityContent;
